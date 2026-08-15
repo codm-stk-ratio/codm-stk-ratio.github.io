@@ -1,0 +1,245 @@
+@font-face {
+  font-family: 'Refrigerator Deluxe';
+  src: url('/font/Refrigerator-Deluxe-Font-Family/Refrigerator-Deluxe-Font-Family/Refrigerator Deluxe Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Refrigerator Deluxe';
+  src: url('/font/Refrigerator-Deluxe-Font-Family/Refrigerator-Deluxe-Font-Family/Refrigerator Deluxe.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Refrigerator Deluxe';
+  src: url('/font/Refrigerator-Deluxe-Font-Family/Refrigerator-Deluxe-Font-Family/Refrigerator Deluxe Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+:root {
+  --bg-color: #0a0a0a;
+  --text-color: #ffffff;
+  --accent-color: #ff9800;
+  --panel-bg: #1a1a1a;
+  --border-color: #333333;
+}
+
+body {
+  margin: 0;
+  font-family: 'Refrigerator Deluxe', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  -webkit-font-smoothing: antialiased;
+}
+
+* { box-sizing: border-box; }
+
+.app-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.header h1 {
+  font-size: 3rem;
+  margin: 0 0 2rem 0;
+  text-transform: uppercase;
+  color: var(--accent-color);
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+.main-content {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 3rem;
+  align-items: start;
+}
+
+.panel {
+  background-color: var(--panel-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.panel h2 {
+  margin-top: 0;
+  font-size: 1.8rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.input-group label {
+  font-size: 1.1rem;
+  margin-bottom: 0.4rem;
+  color: #ccc;
+}
+
+.input-group input, .input-group select {
+  background-color: #2a2a2a;
+  border: 1px solid #444;
+  color: white;
+  padding: 0.8rem;
+  font-family: 'Refrigerator Deluxe', sans-serif;
+  font-size: 1.2rem;
+  border-radius: 4px;
+  outline: none;
+}
+
+/* Character Model Layout */
+.model-layout-container {
+  position: relative;
+  width: 100%;
+  min-height: 400px;
+  background-color: #111;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 0;
+  overflow: hidden; /* Prevent strange scrollbars, we guarantee fit */
+}
+
+.character-images-wrapper {
+  position: relative;
+  /* Aspect ratio of the original image */
+  aspect-ratio: 1207 / 1303;
+  width: 38%; /* Adjusted to give 31% margin on each side */
+}
+
+.connections-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.connection-line {
+  transition: stroke 0.3s, stroke-width 0.3s;
+}
+
+.part-img-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.body-part-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  transition: filter 0.2s;
+}
+
+.base-img {
+  opacity: 0.15;
+  z-index: 1;
+}
+
+.floating-input-box {
+  position: absolute;
+  width: 75%; /* 75% of 38% wrapper = 28.5% of outer. Perfectly fits in 31% margin */
+  min-width: 60px;
+  max-width: 130px;
+  background: rgba(30, 30, 30, 0.95);
+  border: 2px solid #444;
+  border-radius: 6px;
+  padding: 0.5rem 0.2rem;
+  z-index: 10;
+  transition: all 0.3s;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.floating-input-box.active {
+  background: rgba(40, 40, 40, 0.95);
+  transform: scale(1.05);
+}
+
+.part-label {
+  font-size: clamp(0.7rem, 2.5vw, 1.1rem);
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
+  text-align: center;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+  white-space: normal;
+  line-height: 1.1;
+}
+
+.floating-input-box input {
+  width: 90%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #666;
+  color: white;
+  font-family: inherit;
+  font-size: clamp(1.2rem, 3.5vw, 1.6rem);
+  text-align: center;
+  outline: none;
+}
+
+.floating-input-box input:focus {
+  border-bottom-color: white;
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.results-table th, .results-table td {
+  padding: 0.8rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.results-table th {
+  color: var(--accent-color);
+  font-size: 1.2rem;
+}
+
+.results-table td {
+  font-size: 1.2rem;
+}
+
+@media (max-width: 900px) {
+  .main-content {
+    grid-template-columns: 1fr;
+  }
+  .floating-input-box {
+    width: 24%;
+  }
+  .floating-input-box input {
+    font-size: 1rem;
+  }
+}
