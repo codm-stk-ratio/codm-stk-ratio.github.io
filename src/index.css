@@ -236,10 +236,23 @@ body {
   .main-content {
     grid-template-columns: 1fr;
   }
+  .character-images-wrapper {
+    width: 45%;
+  }
   .floating-input-box {
-    width: 24%;
+    width: 55%;
+    padding: 0.3rem 0.1rem;
+    min-width: 50px;
+  }
+  .part-label {
+    font-size: 0.75rem;
+    margin-bottom: 0.1rem;
   }
   .floating-input-box input {
-    font-size: 1rem;
+    font-size: 1.1rem;
+    padding: 0.1rem;
+  }
+  .model-layout-container {
+    min-height: 300px;
   }
 }
