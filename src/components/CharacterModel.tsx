@@ -1,5 +1,6 @@
 import React from 'react';
-import type { PartId } from './App';
+
+export type PartId = 'head' | 'chest' | 'stomach' | 'upper_arm' | 'lower_arm' | 'leg';
 
 export const bodyPartsList: { id: PartId; src: string; label: string }[] = [
   { id: 'head', src: '/image/bodyparts/head.png', label: 'Head' },
