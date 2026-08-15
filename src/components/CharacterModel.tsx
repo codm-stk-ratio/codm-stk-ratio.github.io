@@ -3,12 +3,12 @@ import React from 'react';
 export type PartId = 'head' | 'chest' | 'stomach' | 'upper_arm' | 'lower_arm' | 'leg';
 
 export const bodyPartsList: { id: PartId; src: string; label: string }[] = [
-  { id: 'head', src: '/image/bodyparts/head.png', label: 'Head' },
-  { id: 'chest', src: '/image/bodyparts/chest.png', label: 'Chest' },
-  { id: 'stomach', src: '/image/bodyparts/stomach.png', label: 'Stomach' },
-  { id: 'upper_arm', src: '/image/bodyparts/upper_arm.png', label: 'Upper Arm' },
-  { id: 'lower_arm', src: '/image/bodyparts/lower_arm.png', label: 'Lower Arm' },
-  { id: 'leg', src: '/image/bodyparts/leg.png', label: 'Leg' },
+  { id: 'head', src: `${import.meta.env.BASE_URL}image/bodyparts/head.png`, label: 'Head' },
+  { id: 'chest', src: `${import.meta.env.BASE_URL}image/bodyparts/chest.png`, label: 'Chest' },
+  { id: 'stomach', src: `${import.meta.env.BASE_URL}image/bodyparts/stomach.png`, label: 'Stomach' },
+  { id: 'upper_arm', src: `${import.meta.env.BASE_URL}image/bodyparts/upper_arm.png`, label: 'Upper Arm' },
+  { id: 'lower_arm', src: `${import.meta.env.BASE_URL}image/bodyparts/lower_arm.png`, label: 'Lower Arm' },
+  { id: 'leg', src: `${import.meta.env.BASE_URL}image/bodyparts/leg.png`, label: 'Leg' },
 ];
 
 // All coordinates are relative to the central image wrapper (1207x1303)
@@ -128,7 +128,7 @@ export const CharacterModel: React.FC<CharacterModelProps> = ({
         })}
 
         {/* Character Images */}
-        <img src="/image/bodyparts/full body.png" alt="Base" className="body-part-img base-img" />
+        <img src={`${import.meta.env.BASE_URL}image/bodyparts/full body.png`} alt="Base" className="body-part-img base-img" />
         
         {bodyPartsList.map(part => {
           const isActive = activePart === part.id;
