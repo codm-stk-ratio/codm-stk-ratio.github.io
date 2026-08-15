@@ -178,11 +178,12 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  transform: translateY(-50%); /* Centered vertically against top % */
 }
 
 .floating-input-box.active {
   background: rgba(40, 40, 40, 0.95);
-  transform: scale(1.05);
+  transform: translateY(-50%) scale(1.05);
 }
 
 .part-label {
@@ -237,22 +238,22 @@ body {
     grid-template-columns: 1fr;
   }
   .character-images-wrapper {
-    width: 45%;
+    width: 55%;
   }
   .floating-input-box {
-    width: 55%;
-    padding: 0.3rem 0.1rem;
-    min-width: 50px;
+    width: 38%; /* relative to 55% wrapper, fits in 22.5% margin */
+    padding: 0.1rem 0;
+    min-width: 45px;
   }
   .part-label {
-    font-size: 0.75rem;
-    margin-bottom: 0.1rem;
+    font-size: 0.65rem;
+    margin-bottom: 0;
   }
   .floating-input-box input {
-    font-size: 1.1rem;
-    padding: 0.1rem;
+    font-size: 1rem;
+    padding: 0;
   }
   .model-layout-container {
-    min-height: 300px;
+    min-height: 250px;
   }
 }
