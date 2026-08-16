@@ -25,6 +25,24 @@
   --accent-color: #ff9800;
   --panel-bg: #1a1a1a;
   --border-color: #333333;
+  --card-bg: #2a2a2a;
+  --input-bg: rgba(30, 30, 30, 0.95);
+  --input-bg-active: rgba(40, 40, 40, 0.95);
+  --input-border: #444;
+  --line-inactive: #666;
+}
+
+[data-theme="light"] {
+  --bg-color: #f0f2f5;
+  --text-color: #1a1a1a;
+  --accent-color: #e65100;
+  --panel-bg: #ffffff;
+  --border-color: #cccccc;
+  --card-bg: #f9f9f9;
+  --input-bg: rgba(255, 255, 255, 0.95);
+  --input-bg-active: rgba(240, 240, 240, 0.95);
+  --input-border: #bbb;
+  --line-inactive: #aaa;
 }
 
 body {
@@ -87,14 +105,62 @@ body {
 .input-group label {
   font-size: 1.1rem;
   margin-bottom: 0.4rem;
-  color: #ccc;
+  color: var(--text-color);
+  opacity: 0.8;
 }
 
 .input-group input, .input-group select {
-  background-color: #2a2a2a;
-  border: 1px solid #444;
-  color: white;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
   padding: 0.8rem;
+  font-family: 'Refrigerator Deluxe', sans-serif;
+  font-size: 1.2rem;
+  border-radius: 4px;
+  outline: none;
+}
+
+.input-group input:focus, .input-group select:focus {
+  border-color: var(--accent-color);
+}
+
+.btn {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 4px;
+  font-family: 'Refrigerator Deluxe', sans-serif;
+  font-size: 1.1rem;
+  transition: all 0.2s;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--accent-color);
+  background-color: var(--accent-color);
+  color: #fff;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.theme-toggle {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Refrigerator Deluxe', sans-serif;
+  font-size: 1rem;
+}
+
+.theme-toggle:hover {
+  background: var(--card-bg);
+}
   font-family: 'Refrigerator Deluxe', sans-serif;
   font-size: 1.2rem;
   border-radius: 4px;
@@ -106,9 +172,10 @@ body {
   position: relative;
   width: 100%;
   min-height: 400px;
-  background-color: #111;
-  border-radius: 8px;
+  background-color: var(--card-bg);
+  color: var(--text-color);
   border: 1px solid var(--border-color);
+  border-radius: 8px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -168,8 +235,8 @@ body {
   width: 75%; /* 75% of 38% wrapper = 28.5% of outer. Perfectly fits in 31% margin */
   min-width: 60px;
   max-width: 130px;
-  background: rgba(30, 30, 30, 0.95);
-  border: 2px solid #444;
+  background: var(--input-bg);
+  border: 2px solid var(--input-border);
   border-radius: 6px;
   padding: 0.5rem 0.2rem;
   z-index: 10;
@@ -182,7 +249,7 @@ body {
 }
 
 .floating-input-box.active {
-  background: rgba(40, 40, 40, 0.95);
+  background: var(--input-bg-active);
   transform: translateY(-50%) scale(1.05);
 }
 
@@ -192,7 +259,7 @@ body {
   text-transform: uppercase;
   margin-bottom: 0.3rem;
   text-align: center;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+  text-shadow: none;
   white-space: normal;
   line-height: 1.1;
 }
@@ -201,8 +268,8 @@ body {
   width: 90%;
   background: transparent;
   border: none;
-  border-bottom: 1px solid #666;
-  color: white;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
   font-family: inherit;
   font-size: clamp(1.2rem, 3.5vw, 1.6rem);
   text-align: center;

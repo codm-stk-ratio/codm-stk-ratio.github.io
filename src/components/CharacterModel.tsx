@@ -80,7 +80,7 @@ export const CharacterModel: React.FC<CharacterModelProps> = ({
                   y1={config.lineStart.y} 
                   x2={config.target.x} 
                   y2={config.target.y} 
-                  stroke={isActive ? config.color : '#666'} 
+                  stroke={isActive ? config.color : 'var(--line-inactive)'} 
                   strokeWidth={isActive ? 3 : 1}
                   strokeDasharray={isActive ? "none" : "5,5"}
                   className="connection-line"
@@ -89,7 +89,7 @@ export const CharacterModel: React.FC<CharacterModelProps> = ({
                   cx={config.target.x} 
                   cy={config.target.y} 
                   r={isActive ? 6 : 4} 
-                  fill={isActive ? config.color : '#666'} 
+                  fill={isActive ? config.color : 'var(--line-inactive)'} 
                 />
               </g>
             );

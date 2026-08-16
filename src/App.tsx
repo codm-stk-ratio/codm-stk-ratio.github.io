@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { CharacterModel, bodyPartsList } from './components/CharacterModel';
 import type { PartId } from './components/CharacterModel';
 import { calculateKillProbabilities, calculateCombinations } from './utils/ttkMath';
@@ -43,6 +43,31 @@ function App() {
   });
 
   const [activePart, setActivePart] = useState<PartId | null>(null);
+
+  // --- NEW: Theme State ---
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    return (localStorage.getItem('theme') as 'dark' | 'light') || 'dark';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
+
+  // --- NEW: Saved Damages State ---
+  const [savedDamages, setSavedDamages] = useState<Record<PartId, string> | null>(null);
+
+  const handleSaveDamages = () => setSavedDamages({ ...damages });
+  const handleLoadDamages = () => {
+    if (savedDamages) setDamages(savedDamages);
+  };
+  const handleClearDamages = () => {
+    setDamages({ head: '', chest: '', stomach: '', upper_arm: '', lower_arm: '', leg: '' });
+  };
 
   const handleModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newMode = e.target.value;
@@ -89,8 +114,11 @@ function App() {
 
   return (
     <div className="app-container">
-      <header className="header">
+      <header className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1>CODM STK RATIO</h1>
+        <button className="theme-toggle" onClick={toggleTheme}>
+          {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
+        </button>
       </header>
 
       <div className="main-content">
@@ -115,6 +143,15 @@ function App() {
                 min="1"
                 max="1000"
               />
+            </div>
+          </div>
+
+          <div className="panel" style={{ marginBottom: '2rem' }}>
+            <h2>Quick Actions</h2>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <button className="btn" onClick={handleSaveDamages}>Save Build</button>
+              <button className="btn" onClick={handleLoadDamages} disabled={!savedDamages}>Load Build</button>
+              <button className="btn" onClick={handleClearDamages}>Clear All</button>
             </div>
           </div>
 
@@ -158,7 +195,7 @@ function App() {
                 
                 <div style={{ marginTop: '3rem' }}>
                   <h2>Shot Combinations</h2>
-                  <p style={{ color: '#aaa', marginBottom: '1rem', lineHeight: '1.5' }}>
+                  <p style={{ opacity: 0.7, marginBottom: '1rem', lineHeight: '1.5' }}>
                     Minimum body part combinations required to kill.
                   </p>
                   
@@ -168,7 +205,7 @@ function App() {
                     if (combs.length === 0) return null;
 
                     return (
-                      <div key={stk} style={{ marginBottom: '1.5rem', backgroundColor: '#2a2a2a', padding: '1rem', borderRadius: '4px' }}>
+                      <div key={stk} style={{ marginBottom: '1.5rem', backgroundColor: 'var(--card-bg)', padding: '1rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
                         <h3 style={{ color: 'var(--accent-color)', margin: '0 0 1rem 0' }}>{stk}-Shot Kill Combinations</h3>
                         {stk === maxSTK ? (
                           <p>100% Consistent (Any remaining combinations guarantee a kill in {stk} shots).</p>
@@ -185,7 +222,7 @@ function App() {
                     );
                   })}
                   {maxSTK > 0 && !combinations[maxSTK] && (
-                    <div style={{ marginBottom: '1.5rem', backgroundColor: '#2a2a2a', padding: '1rem', borderRadius: '4px' }}>
+                    <div style={{ marginBottom: '1.5rem', backgroundColor: 'var(--card-bg)', padding: '1rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
                         <h3 style={{ color: 'var(--accent-color)', margin: '0 0 1rem 0' }}>{maxSTK}-Shot Kill</h3>
                         <p>100% Consistent (Any remaining combinations guarantee a kill in {maxSTK} shots).</p>
                     </div>
@@ -202,7 +239,7 @@ function App() {
                 marginTop: '2rem'
               }}>
                 <h3 style={{ color: 'var(--accent-color)', marginTop: 0 }}>Waiting for Input...</h3>
-                <p style={{ color: '#ddd' }}>Please enter valid damage values for all body parts to view the analysis.</p>
+                <p style={{ opacity: 0.8 }}>Please enter valid damage values for all body parts to view the analysis.</p>
               </div>
             )}
           </div>
