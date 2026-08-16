@@ -119,6 +119,7 @@ export const CharacterModel: React.FC<CharacterModelProps> = ({
               <input 
                 type="number"
                 value={damages[part.id] || ''}
+                style={{ color: config.color }}
                 onChange={(e) => {
                   onDamageChange(part.id, e.target.value);
                   onPartClick(part.id); // keep active
