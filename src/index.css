@@ -161,11 +161,7 @@ body {
 .theme-toggle:hover {
   background: var(--card-bg);
 }
-  font-family: 'Refrigerator Deluxe', sans-serif;
-  font-size: 1.2rem;
-  border-radius: 4px;
-  outline: none;
-}
+
 
 /* Character Model Layout */
 .model-layout-container {
