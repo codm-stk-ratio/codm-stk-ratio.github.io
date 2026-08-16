@@ -124,6 +124,16 @@ body {
   border-color: var(--accent-color);
 }
 
+/* Hide arrows in number inputs */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield; /* Firefox */
+}
+
 .btn {
   background-color: var(--card-bg);
   border: 1px solid var(--border-color);
