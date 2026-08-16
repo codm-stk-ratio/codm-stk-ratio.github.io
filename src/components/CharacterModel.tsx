@@ -81,8 +81,7 @@ export const CharacterModel: React.FC<CharacterModelProps> = ({
                   x2={config.target.x} 
                   y2={config.target.y} 
                   stroke={config.color} 
-                  strokeWidth={isActive ? 3 : 1}
-                  strokeDasharray={isActive ? "none" : "5,5"}
+                  strokeWidth={isActive ? 4 : 2}
                   className="connection-line"
                   opacity={isActive ? 1 : 0.6}
                 />
