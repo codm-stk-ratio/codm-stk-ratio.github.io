@@ -90,7 +90,7 @@ function App() {
   return (
     <div className="app-container">
       <header className="header">
-        <h1>CODM TTK Calculator</h1>
+        <h1>CODM STK RATIO</h1>
       </header>
 
       <div className="main-content">
