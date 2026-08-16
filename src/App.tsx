@@ -59,24 +59,53 @@ function App() {
   };
 
   // --- NEW: Saved Builds State ---
-  const [savedBuilds, setSavedBuilds] = useState<{id: number, name: string, damages: Record<PartId, string>}[]>([]);
+  const [savedBuilds, setSavedBuilds] = useState<{id: number, name: string, damages: Record<PartId, string>}[]>(() => {
+    const saved = localStorage.getItem('savedBuilds');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [showLoadMenu, setShowLoadMenu] = useState(false);
 
+  useEffect(() => {
+    localStorage.setItem('savedBuilds', JSON.stringify(savedBuilds));
+  }, [savedBuilds]);
+
   const handleSaveDamages = () => {
-    const defaultName = `Build ${savedBuilds.length + 1}`;
-    const buildName = window.prompt('Enter a name for this build:', defaultName);
-    
-    if (buildName !== null) {
-      setSavedBuilds(prev => [
-        ...prev,
-        {
-          id: Date.now(),
-          name: buildName.trim() || defaultName,
-          damages: { ...damages }
-        }
-      ]);
-      setShowLoadMenu(true);
+    // 1. Check if damage configuration is identical to an existing build
+    const isDuplicateDamage = savedBuilds.some(build => {
+      return (Object.keys(damages) as PartId[]).every(key => 
+        build.damages[key] === damages[key]
+      );
+    });
+
+    if (isDuplicateDamage) {
+      window.alert('Lỗi: Một cấu hình với các chỉ số sát thương y hệt đã được lưu trước đó!');
+      return;
     }
+
+    const defaultName = `Build ${savedBuilds.length + 1}`;
+    let buildName = window.prompt('Nhập tên cho cấu hình này:', defaultName);
+    
+    if (buildName === null) return;
+    
+    buildName = buildName.trim() || defaultName;
+
+    // 2. Check if name already exists
+    const isDuplicateName = savedBuilds.some(build => build.name.toLowerCase() === buildName!.toLowerCase());
+    
+    if (isDuplicateName) {
+      window.alert('Lỗi: Tên cấu hình này đã tồn tại. Vui lòng chọn một tên khác!');
+      return;
+    }
+
+    setSavedBuilds(prev => [
+      ...prev,
+      {
+        id: Date.now(),
+        name: buildName!,
+        damages: { ...damages }
+      }
+    ]);
+    setShowLoadMenu(true);
   };
 
   const handleToggleLoadMenu = () => {
