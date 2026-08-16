@@ -80,16 +80,18 @@ export const CharacterModel: React.FC<CharacterModelProps> = ({
                   y1={config.lineStart.y} 
                   x2={config.target.x} 
                   y2={config.target.y} 
-                  stroke={isActive ? config.color : 'var(--line-inactive)'} 
+                  stroke={config.color} 
                   strokeWidth={isActive ? 3 : 1}
                   strokeDasharray={isActive ? "none" : "5,5"}
                   className="connection-line"
+                  opacity={isActive ? 1 : 0.6}
                 />
                 <circle 
                   cx={config.target.x} 
                   cy={config.target.y} 
                   r={isActive ? 6 : 4} 
-                  fill={isActive ? config.color : 'var(--line-inactive)'} 
+                  fill={config.color} 
+                  opacity={isActive ? 1 : 0.6}
                 />
               </g>
             );
@@ -108,7 +110,7 @@ export const CharacterModel: React.FC<CharacterModelProps> = ({
                 left: config.inputBox.left,
                 right: config.inputBox.right,
                 top: config.inputBox.top,
-                borderColor: isActive ? config.color : '#444',
+                borderColor: config.color,
                 boxShadow: isActive ? `0 0 10px ${config.color}40` : 'none'
               }}
               onClick={() => onPartClick(part.id)}
