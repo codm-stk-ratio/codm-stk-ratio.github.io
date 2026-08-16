@@ -58,13 +58,41 @@ function App() {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark');
   };
 
-  // --- NEW: Saved Damages State ---
-  const [savedDamages, setSavedDamages] = useState<Record<PartId, string> | null>(null);
+  // --- NEW: Saved Builds State ---
+  const [savedBuilds, setSavedBuilds] = useState<{id: number, name: string, damages: Record<PartId, string>}[]>([]);
+  const [showLoadMenu, setShowLoadMenu] = useState(false);
 
-  const handleSaveDamages = () => setSavedDamages({ ...damages });
-  const handleLoadDamages = () => {
-    if (savedDamages) setDamages(savedDamages);
+  const handleSaveDamages = () => {
+    const defaultName = `Build ${savedBuilds.length + 1}`;
+    const buildName = window.prompt('Enter a name for this build:', defaultName);
+    
+    if (buildName !== null) {
+      setSavedBuilds(prev => [
+        ...prev,
+        {
+          id: Date.now(),
+          name: buildName.trim() || defaultName,
+          damages: { ...damages }
+        }
+      ]);
+      setShowLoadMenu(true);
+    }
   };
+
+  const handleToggleLoadMenu = () => {
+    setShowLoadMenu(!showLoadMenu);
+  };
+
+  const handleLoadBuild = (buildDamages: Record<PartId, string>) => {
+    setDamages(buildDamages);
+    setShowLoadMenu(false);
+  };
+
+  const handleDeleteBuild = (id: number) => {
+    setSavedBuilds(prev => prev.filter(b => b.id !== id));
+    if (savedBuilds.length <= 1) setShowLoadMenu(false);
+  };
+
   const handleClearDamages = () => {
     setDamages({ head: '', chest: '', stomach: '', upper_arm: '', lower_arm: '', leg: '' });
   };
@@ -150,9 +178,33 @@ function App() {
             <h2>Quick Actions</h2>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
               <button className="btn" onClick={handleSaveDamages}>Save Build</button>
-              <button className="btn" onClick={handleLoadDamages} disabled={!savedDamages}>Load Build</button>
+              <button className="btn" onClick={handleToggleLoadMenu} disabled={savedBuilds.length === 0}>
+                Load Build ({savedBuilds.length})
+              </button>
               <button className="btn" onClick={handleClearDamages}>Clear All</button>
             </div>
+            
+            {showLoadMenu && savedBuilds.length > 0 && (
+              <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {savedBuilds.map(build => (
+                  <div key={build.id} style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center', 
+                    backgroundColor: 'var(--card-bg)', 
+                    padding: '0.5rem 1rem', 
+                    borderRadius: '4px', 
+                    border: '1px solid var(--border-color)' 
+                  }}>
+                    <span style={{ fontWeight: 'bold' }}>{build.name}</span>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button onClick={() => handleLoadBuild(build.damages)} className="btn" style={{ padding: '0.2rem 0.6rem', fontSize: '0.9rem' }}>Load</button>
+                      <button onClick={() => handleDeleteBuild(build.id)} className="btn" style={{ padding: '0.2rem 0.6rem', fontSize: '0.9rem', backgroundColor: '#d32f2f', borderColor: '#d32f2f', color: 'white' }}>Delete</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="panel" style={{ padding: '1rem' }}>
