@@ -98,7 +98,7 @@ function getLabelForDamage(reqDmg: number, uniqueDamages: number[], dmgGroups: M
   return applicableParts.join('/');
 }
 
-export function calculateCombinations(health: number, bodyParts: BodyPartStats[]): Record<number, KillCombination[]> {
+export function calculateCombinations(health: number, bodyParts: BodyPartStats[], maxCombinationShots: number = 20): Record<number, KillCombination[]> {
   // Group by damage to reduce duplicates (e.g. if Stomach and Arms have same damage, treat as one)
   const dmgGroups = new Map<number, string[]>();
   for (const part of bodyParts) {
@@ -114,8 +114,12 @@ export function calculateCombinations(health: number, bodyParts: BodyPartStats[]
   
   if (!minDamage) return {};
 
-  const maxShots = Math.ceil(health / minDamage);
+  const actualMaxShots = Math.ceil(health / minDamage);
+  const maxShots = Math.min(actualMaxShots, maxCombinationShots);
   const combinations: Record<number, KillCombination[]> = {};
+  
+  let iterations = 0;
+  const MAX_ITERATIONS = 50000; // Fail-safe to prevent browser hang on low-end phones
 
   const findCombs = (
     index: number,
@@ -123,6 +127,8 @@ export function calculateCombinations(health: number, bodyParts: BodyPartStats[]
     currentSum: number,
     currentCombination: { dmg: number; count: number }[]
   ) => {
+    if (iterations++ > MAX_ITERATIONS) return;
+
     // If we've reached or exceeded health
     if (currentSum >= health) {
       
