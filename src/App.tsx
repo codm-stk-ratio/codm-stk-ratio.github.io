@@ -308,7 +308,7 @@ function App() {
             {isReady && probResults.length > 0 ? (
               <>
                 {(() => {
-                  const fi = parseInt(fireInterval) || 0;
+                  const fi = parseFloat(fireInterval) || 0;
                   let expectedTTK = 0;
                   if (fi > 0) {
                     let expectedShots = 0;
@@ -322,12 +322,14 @@ function App() {
                     expectedTTK = (expectedShots - 1) * fi;
                   }
 
+                  const formatTTK = (val: number) => parseFloat(val.toFixed(2));
+
                   return (
                     <>
                       {fi > 0 && expectedTTK > 0 && (
                         <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: 'rgba(255, 152, 0, 0.1)', border: '1px solid var(--accent-color)', borderRadius: '4px' }}>
                           <span style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>Average Time-To-Kill: </span>
-                          <span style={{ color: 'var(--accent-color)', fontSize: '1.2rem', fontWeight: 'bold' }}>{expectedTTK.toFixed(0)} ms</span>
+                          <span style={{ color: 'var(--accent-color)', fontSize: '1.2rem', fontWeight: 'bold' }}>{formatTTK(expectedTTK)} ms</span>
                         </div>
                       )}
                       
@@ -345,7 +347,7 @@ function App() {
                             r.probability > 0.01 && (
                               <tr key={r.shots}>
                                 <td>{r.shots} Shots</td>
-                                {fi > 0 && <td>{(r.shots - 1) * fi} ms</td>}
+                                {fi > 0 && <td>{formatTTK((r.shots - 1) * fi)} ms</td>}
                                 <td>{r.probability.toFixed(2)}%</td>
                                 <td>{r.cumulativeProbability.toFixed(2)}%</td>
                               </tr>
@@ -367,13 +369,14 @@ function App() {
                     const stk = parseInt(stkStr);
                     const combs = combinations[stk];
                     if (combs.length === 0) return null;
-                    const fi = parseInt(fireInterval) || 0;
+                    const fi = parseFloat(fireInterval) || 0;
+                    const formatTTK = (val: number) => parseFloat(val.toFixed(2));
 
                     return (
                       <div key={stk} style={{ marginBottom: '1.5rem', backgroundColor: 'var(--card-bg)', padding: '1rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
                         <h3 style={{ color: 'var(--accent-color)', margin: '0 0 1rem 0' }}>
                           {stk}-Shot Kill Combinations
-                          {fi > 0 && ` (TTK: ${(stk - 1) * fi} ms)`}
+                          {fi > 0 && ` (TTK: ${formatTTK((stk - 1) * fi)} ms)`}
                         </h3>
                         {stk === maxSTK ? (
                           <p>100% Consistent (Any remaining combinations guarantee a kill in {stk} shots).</p>
@@ -393,7 +396,7 @@ function App() {
                     <div style={{ marginBottom: '1.5rem', backgroundColor: 'var(--card-bg)', padding: '1rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
                         <h3 style={{ color: 'var(--accent-color)', margin: '0 0 1rem 0' }}>
                           {maxSTK}-Shot Kill
-                          {parseInt(fireInterval) > 0 && ` (TTK: ${(maxSTK - 1) * parseInt(fireInterval)} ms)`}
+                          {parseFloat(fireInterval) > 0 && ` (TTK: ${parseFloat(((maxSTK - 1) * parseFloat(fireInterval)).toFixed(2))} ms)`}
                         </h3>
                         <p>100% Consistent (Any remaining combinations guarantee a kill in {maxSTK} shots).</p>
                     </div>
