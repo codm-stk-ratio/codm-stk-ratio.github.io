@@ -188,23 +188,5 @@ export function calculateCombinations(health: number, bodyParts: BodyPartStats[]
 
   findCombs(0, 0, 0, []);
 
-  // Post-processing: If a specific STK has combinations that DO NOT require a strict Headshot,
-  // hide the combinations that DO require a strict Headshot for that same STK.
-  for (const stkStr in combinations) {
-    const stk = parseInt(stkStr);
-    const combs = combinations[stk];
-    
-    // A strict headshot is a part that is exactly "Head" (no other body part shares this damage)
-    const hasNonHeadshotComb = combs.some(comb => 
-      !comb.parts.some(p => p.name === 'Head')
-    );
-    
-    if (hasNonHeadshotComb) {
-      combinations[stk] = combs.filter(comb => 
-        !comb.parts.some(p => p.name === 'Head')
-      );
-    }
-  }
-
   return combinations;
 }
