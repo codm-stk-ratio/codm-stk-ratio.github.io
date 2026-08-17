@@ -37,6 +37,9 @@ function App() {
   const [mode, setMode] = useState<string>(() => {
     return localStorage.getItem('currentMode') || 'mp';
   });
+  const [fireInterval, setFireInterval] = useState<string>(() => {
+    return localStorage.getItem('currentFireInterval') || '';
+  });
   
   const [damages, setDamages] = useState<Record<PartId, string>>(() => {
     const saved = localStorage.getItem('currentDamages');
@@ -56,8 +59,9 @@ function App() {
   useEffect(() => {
     localStorage.setItem('currentHealth', health.toString());
     localStorage.setItem('currentMode', mode);
+    localStorage.setItem('currentFireInterval', fireInterval);
     localStorage.setItem('currentDamages', JSON.stringify(damages));
-  }, [health, mode, damages]);
+  }, [health, mode, damages, fireInterval]);
 
   const [activePart, setActivePart] = useState<PartId | null>(null);
 
@@ -240,6 +244,17 @@ function App() {
                 max="1000"
               />
             </div>
+
+            <div className="input-group">
+              <label>Fire Interval (ms)</label>
+              <input 
+                type="number" 
+                value={fireInterval} 
+                onChange={(e) => setFireInterval(e.target.value)}
+                placeholder="e.g. 100"
+                min="0"
+              />
+            </div>
           </div>
 
           <div className="panel" style={{ marginBottom: '2rem' }}>
@@ -292,26 +307,55 @@ function App() {
             
             {isReady && probResults.length > 0 ? (
               <>
-                <table className="results-table">
-                  <thead>
-                    <tr>
-                      <th>Shots (STK)</th>
-                      <th>Exact Prob.</th>
-                      <th>Cumulative Prob.</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {probResults.map(r => (
-                      r.probability > 0.01 && (
-                        <tr key={r.shots}>
-                          <td>{r.shots} Shots</td>
-                          <td>{r.probability.toFixed(2)}%</td>
-                          <td>{r.cumulativeProbability.toFixed(2)}%</td>
-                        </tr>
-                      )
-                    ))}
-                  </tbody>
-                </table>
+                {(() => {
+                  const fi = parseInt(fireInterval) || 0;
+                  let expectedTTK = 0;
+                  if (fi > 0) {
+                    let expectedShots = 0;
+                    probResults.forEach(r => {
+                      expectedShots += (r.probability / 100) * r.shots;
+                    });
+                    const maxCumul = probResults[probResults.length - 1].cumulativeProbability / 100;
+                    if (maxCumul > 0) {
+                      expectedShots = expectedShots / maxCumul;
+                    }
+                    expectedTTK = (expectedShots - 1) * fi;
+                  }
+
+                  return (
+                    <>
+                      {fi > 0 && expectedTTK > 0 && (
+                        <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: 'rgba(255, 152, 0, 0.1)', border: '1px solid var(--accent-color)', borderRadius: '4px' }}>
+                          <span style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>Average Time-To-Kill: </span>
+                          <span style={{ color: 'var(--accent-color)', fontSize: '1.2rem', fontWeight: 'bold' }}>{expectedTTK.toFixed(0)} ms</span>
+                        </div>
+                      )}
+                      
+                      <table className="results-table">
+                        <thead>
+                          <tr>
+                            <th>Shots (STK)</th>
+                            {fi > 0 && <th>TTK (ms)</th>}
+                            <th>Exact Prob.</th>
+                            <th>Cumulative Prob.</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {probResults.map(r => (
+                            r.probability > 0.01 && (
+                              <tr key={r.shots}>
+                                <td>{r.shots} Shots</td>
+                                {fi > 0 && <td>{(r.shots - 1) * fi} ms</td>}
+                                <td>{r.probability.toFixed(2)}%</td>
+                                <td>{r.cumulativeProbability.toFixed(2)}%</td>
+                              </tr>
+                            )
+                          ))}
+                        </tbody>
+                      </table>
+                    </>
+                  );
+                })()}
                 
                 <div style={{ marginTop: '3rem' }}>
                   <h2>Shot Combinations</h2>
@@ -323,10 +367,14 @@ function App() {
                     const stk = parseInt(stkStr);
                     const combs = combinations[stk];
                     if (combs.length === 0) return null;
+                    const fi = parseInt(fireInterval) || 0;
 
                     return (
                       <div key={stk} style={{ marginBottom: '1.5rem', backgroundColor: 'var(--card-bg)', padding: '1rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
-                        <h3 style={{ color: 'var(--accent-color)', margin: '0 0 1rem 0' }}>{stk}-Shot Kill Combinations</h3>
+                        <h3 style={{ color: 'var(--accent-color)', margin: '0 0 1rem 0' }}>
+                          {stk}-Shot Kill Combinations
+                          {fi > 0 && ` (TTK: ${(stk - 1) * fi} ms)`}
+                        </h3>
                         {stk === maxSTK ? (
                           <p>100% Consistent (Any remaining combinations guarantee a kill in {stk} shots).</p>
                         ) : (
@@ -343,7 +391,10 @@ function App() {
                   })}
                   {maxSTK > 0 && !combinations[maxSTK] && (
                     <div style={{ marginBottom: '1.5rem', backgroundColor: 'var(--card-bg)', padding: '1rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
-                        <h3 style={{ color: 'var(--accent-color)', margin: '0 0 1rem 0' }}>{maxSTK}-Shot Kill</h3>
+                        <h3 style={{ color: 'var(--accent-color)', margin: '0 0 1rem 0' }}>
+                          {maxSTK}-Shot Kill
+                          {parseInt(fireInterval) > 0 && ` (TTK: ${(maxSTK - 1) * parseInt(fireInterval)} ms)`}
+                        </h3>
                         <p>100% Consistent (Any remaining combinations guarantee a kill in {maxSTK} shots).</p>
                     </div>
                   )}
