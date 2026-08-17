@@ -30,17 +30,34 @@ const FIXED_PROBABILITIES: Record<string, Record<PartId, number>> = {
 };
 
 function App() {
-  const [health, setHealth] = useState<number>(100);
-  const [mode, setMode] = useState<string>('mp');
-  
-  const [damages, setDamages] = useState<Record<PartId, string>>({
-    head: '',
-    chest: '',
-    stomach: '',
-    upper_arm: '',
-    lower_arm: '',
-    leg: '',
+  const [health, setHealth] = useState<number>(() => {
+    const saved = localStorage.getItem('currentHealth');
+    return saved ? parseInt(saved, 10) : 100;
   });
+  const [mode, setMode] = useState<string>(() => {
+    return localStorage.getItem('currentMode') || 'mp';
+  });
+  
+  const [damages, setDamages] = useState<Record<PartId, string>>(() => {
+    const saved = localStorage.getItem('currentDamages');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse saved damages');
+      }
+    }
+    return {
+      head: '', chest: '', stomach: '', upper_arm: '', lower_arm: '', leg: '',
+    };
+  });
+
+  // Auto-save inputs
+  useEffect(() => {
+    localStorage.setItem('currentHealth', health.toString());
+    localStorage.setItem('currentMode', mode);
+    localStorage.setItem('currentDamages', JSON.stringify(damages));
+  }, [health, mode, damages]);
 
   const [activePart, setActivePart] = useState<PartId | null>(null);
 
