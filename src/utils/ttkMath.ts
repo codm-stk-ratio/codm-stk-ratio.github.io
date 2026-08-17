@@ -24,8 +24,9 @@ export function calculateKillProbabilities(
   const totalProb = bodyParts.reduce((sum, part) => sum + part.probability, 0);
   if (totalProb === 0) return [];
 
+  const EPSILON = 1e-9;
   const parts = bodyParts.map(p => ({
-    damage: Math.floor(p.damage),
+    damage: p.damage,
     prob: p.probability / totalProb
   })).filter(p => p.damage > 0);
 
@@ -48,7 +49,7 @@ export function calculateKillProbabilities(
         const newDmg = dmg + part.damage;
         const transitionProb = prob * part.prob;
 
-        if (newDmg >= health) {
+        if (newDmg >= health - EPSILON) {
           probKilledThisShot += transitionProb;
         } else {
           nextDp.set(newDmg, (nextDp.get(newDmg) || 0) + transitionProb);
@@ -99,10 +100,11 @@ function getLabelForDamage(reqDmg: number, uniqueDamages: number[], dmgGroups: M
 }
 
 export function calculateCombinations(health: number, bodyParts: BodyPartStats[], maxCombinationShots: number = 20): Record<number, KillCombination[]> {
+  const EPSILON = 1e-9;
   // Group by damage to reduce duplicates (e.g. if Stomach and Arms have same damage, treat as one)
   const dmgGroups = new Map<number, string[]>();
   for (const part of bodyParts) {
-    const dmg = Math.floor(part.damage);
+    const dmg = part.damage;
     if (dmg <= 0) continue;
     if (!dmgGroups.has(dmg)) dmgGroups.set(dmg, []);
     dmgGroups.get(dmg)!.push(part.name);
@@ -130,12 +132,12 @@ export function calculateCombinations(health: number, bodyParts: BodyPartStats[]
     if (iterations++ > MAX_ITERATIONS) return;
 
     // If we've reached or exceeded health
-    if (currentSum >= health) {
+    if (currentSum >= health - EPSILON) {
       
       // The condition for a "minimal" kill combination: removing the smallest shot does NOT kill
       const minDmgInComb = currentCombination[currentCombination.length - 1].dmg;
       
-      if (currentSum - minDmgInComb < health) {
+      if (currentSum - minDmgInComb < health - EPSILON) {
         
         // Ensure it is a "boundary" combination: 
         // Lowering ANY single shot to the NEXT available lower damage tier must drop the sum below health.
@@ -150,7 +152,7 @@ export function calculateCombinations(health: number, bodyParts: BodyPartStats[]
             const lowerDmg = uniqueDamages[nextSmallerIndex];
             const downgradedSum = currentSum - dmg + lowerDmg;
             
-            if (downgradedSum >= health) {
+            if (downgradedSum >= health - EPSILON) {
               isBoundary = false;
               break;
             }
