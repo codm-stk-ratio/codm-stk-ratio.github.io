@@ -111,10 +111,14 @@ function App() {
     buildName = buildName.trim() || defaultName;
 
     // 2. Check if name already exists
-    const isDuplicateName = savedBuilds.some(build => build.name.toLowerCase() === buildName!.toLowerCase());
+    const existingBuild = savedBuilds.find(build => build.name.toLowerCase() === buildName!.toLowerCase());
     
-    if (isDuplicateName) {
-      window.alert('Lỗi: Tên cấu hình này đã tồn tại. Vui lòng chọn một tên khác!');
+    if (existingBuild) {
+      const confirmOverwrite = window.confirm(`Cấu hình mang tên "${existingBuild.name}" đã tồn tại. Bạn có muốn ghi đè lên nó không?`);
+      if (!confirmOverwrite) return;
+      
+      setSavedBuilds(prev => prev.map(b => b.id === existingBuild.id ? { ...b, damages: { ...damages } } : b));
+      setShowLoadMenu(true);
       return;
     }
 
@@ -127,6 +131,25 @@ function App() {
       }
     ]);
     setShowLoadMenu(true);
+  };
+
+  const handleRenameBuild = (id: number) => {
+    const build = savedBuilds.find(b => b.id === id);
+    if (!build) return;
+    
+    let newName = window.prompt('Nhập tên mới cho cấu hình này:', build.name);
+    if (newName === null) return;
+    
+    newName = newName.trim();
+    if (!newName || newName === build.name) return;
+    
+    const isDuplicateName = savedBuilds.some(b => b.id !== id && b.name.toLowerCase() === newName!.toLowerCase());
+    if (isDuplicateName) {
+      window.alert('Lỗi: Tên cấu hình này đã tồn tại!');
+      return;
+    }
+
+    setSavedBuilds(prev => prev.map(b => b.id === id ? { ...b, name: newName! } : b));
   };
 
   const handleToggleLoadMenu = () => {
@@ -282,6 +305,7 @@ function App() {
                     <span style={{ fontWeight: 'bold' }}>{build.name}</span>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                       <button onClick={() => handleLoadBuild(build.damages)} className="btn" style={{ padding: '0.2rem 0.6rem', fontSize: '0.9rem' }}>Load</button>
+                      <button onClick={() => handleRenameBuild(build.id)} className="btn" style={{ padding: '0.2rem 0.6rem', fontSize: '0.9rem' }}>Rename</button>
                       <button onClick={() => handleDeleteBuild(build.id)} className="btn" style={{ padding: '0.2rem 0.6rem', fontSize: '0.9rem', backgroundColor: '#d32f2f', borderColor: '#d32f2f', color: 'white' }}>Delete</button>
                     </div>
                   </div>
