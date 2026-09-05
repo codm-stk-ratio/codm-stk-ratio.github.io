@@ -80,7 +80,7 @@ function App() {
   };
 
   // --- NEW: Saved Builds State ---
-  const [savedBuilds, setSavedBuilds] = useState<{id: number, name: string, damages: Record<PartId, string>}[]>(() => {
+  const [savedBuilds, setSavedBuilds] = useState<{id: number, name: string, damages: Record<PartId, string>, fireInterval?: string}[]>(() => {
     const saved = localStorage.getItem('savedBuilds');
     return saved ? JSON.parse(saved) : [];
   });
@@ -117,7 +117,7 @@ function App() {
       const confirmOverwrite = window.confirm(`Cấu hình mang tên "${existingBuild.name}" đã tồn tại. Bạn có muốn ghi đè lên nó không?`);
       if (!confirmOverwrite) return;
       
-      setSavedBuilds(prev => prev.map(b => b.id === existingBuild.id ? { ...b, damages: { ...damages } } : b));
+      setSavedBuilds(prev => prev.map(b => b.id === existingBuild.id ? { ...b, damages: { ...damages }, fireInterval } : b));
       setShowLoadMenu(true);
       return;
     }
@@ -127,7 +127,8 @@ function App() {
       {
         id: Date.now(),
         name: buildName!,
-        damages: { ...damages }
+        damages: { ...damages },
+        fireInterval
       }
     ]);
     setShowLoadMenu(true);
@@ -156,8 +157,9 @@ function App() {
     setShowLoadMenu(!showLoadMenu);
   };
 
-  const handleLoadBuild = (buildDamages: Record<PartId, string>) => {
+  const handleLoadBuild = (buildDamages: Record<PartId, string>, buildFireInterval?: string) => {
     setDamages(buildDamages);
+    setFireInterval(buildFireInterval || '');
     setShowLoadMenu(false);
   };
 
@@ -305,7 +307,7 @@ function App() {
                   }}>
                     <span style={{ fontWeight: 'bold' }}>{build.name}</span>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button onClick={() => handleLoadBuild(build.damages)} className="btn" style={{ padding: '0.2rem 0.6rem', fontSize: '0.9rem' }}>Load</button>
+                      <button onClick={() => handleLoadBuild(build.damages, build.fireInterval)} className="btn" style={{ padding: '0.2rem 0.6rem', fontSize: '0.9rem' }}>Load</button>
                       <button onClick={() => handleRenameBuild(build.id)} className="btn" style={{ padding: '0.2rem 0.6rem', fontSize: '0.9rem' }}>Rename</button>
                       <button onClick={() => handleDeleteBuild(build.id)} className="btn" style={{ padding: '0.2rem 0.6rem', fontSize: '0.9rem', backgroundColor: '#d32f2f', borderColor: '#d32f2f', color: 'white' }}>Delete</button>
                     </div>
