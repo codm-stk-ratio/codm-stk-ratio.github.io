@@ -168,6 +168,7 @@ function App() {
 
   const handleClearDamages = () => {
     setDamages({ head: '', chest: '', stomach: '', upper_arm: '', lower_arm: '', leg: '' });
+    setFireInterval('');
   };
 
   const handleModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
