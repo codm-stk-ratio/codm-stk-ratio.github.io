@@ -433,7 +433,7 @@ function App() {
                 <h3 style={{ marginTop: 0, marginBottom: '0.8rem', fontSize: '1.2rem' }}>Save as New Build</h3>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <input 
-                    style={{ flex: 1, padding: '0.6rem', background: 'var(--input-bg)', color: 'var(--text-color)', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+                    style={{ flex: 1, padding: '0.6rem', background: 'var(--input-bg)', color: 'var(--text-color)', border: '1px solid var(--border-color)', borderRadius: '4px', fontFamily: 'inherit', fontSize: '1.1rem' }}
                     value={newBuildName}
                     onChange={e => setNewBuildName(e.target.value)}
                     placeholder="Build Name"
