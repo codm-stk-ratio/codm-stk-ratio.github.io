@@ -443,40 +443,39 @@ function App() {
               </div>
             )}
 
-            <div>
-              {modalState === 'save' && savedBuilds.length > 0 && (
-                <h3 style={{ marginTop: 0, marginBottom: '0.8rem', fontSize: '1.2rem' }}>Or Overwrite Existing</h3>
+            {modalState === 'save' && savedBuilds.length > 0 && (
+              <h3 style={{ marginTop: 0, marginBottom: '0.8rem', fontSize: '1.2rem' }}>Or Overwrite Existing</h3>
+            )}
+            
+            <div className="modal-body" style={{ gap: '0.8rem' }}>
+              {savedBuilds.length === 0 && modalState === 'load' ? (
+                <p>No saved builds found.</p>
+              ) : (
+                savedBuilds.map(build => (
+                  <div key={build.id} style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center', 
+                    backgroundColor: 'var(--card-bg)', 
+                    padding: '0.8rem 1rem', 
+                    borderRadius: '4px', 
+                    border: '1px solid var(--border-color)',
+                    flexShrink: 0
+                  }}>
+                    <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{build.name}</span>
+                    
+                    {modalState === 'load' ? (
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button onClick={() => handleLoadBuild(build.damages, build.fireInterval)} className="btn" style={{ padding: '0.3rem 0.8rem' }}>Load</button>
+                        <button onClick={() => handleRenameBuild(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem' }}>Rename</button>
+                        <button onClick={() => handleDeleteBuild(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem', backgroundColor: '#d32f2f', borderColor: '#d32f2f', color: 'white' }}>Delete</button>
+                      </div>
+                    ) : (
+                      <button onClick={() => handleOverwrite(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem', backgroundColor: 'var(--accent-color)', borderColor: 'var(--accent-color)', color: 'white' }}>Overwrite</button>
+                    )}
+                  </div>
+                ))
               )}
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                {savedBuilds.length === 0 && modalState === 'load' ? (
-                  <p>No saved builds found.</p>
-                ) : (
-                  savedBuilds.map(build => (
-                    <div key={build.id} style={{ 
-                      display: 'flex', 
-                      justifyContent: 'space-between', 
-                      alignItems: 'center', 
-                      backgroundColor: 'var(--card-bg)', 
-                      padding: '0.8rem 1rem', 
-                      borderRadius: '4px', 
-                      border: '1px solid var(--border-color)' 
-                    }}>
-                      <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{build.name}</span>
-                      
-                      {modalState === 'load' ? (
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <button onClick={() => handleLoadBuild(build.damages, build.fireInterval)} className="btn" style={{ padding: '0.3rem 0.8rem' }}>Load</button>
-                          <button onClick={() => handleRenameBuild(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem' }}>Rename</button>
-                          <button onClick={() => handleDeleteBuild(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem', backgroundColor: '#d32f2f', borderColor: '#d32f2f', color: 'white' }}>Delete</button>
-                        </div>
-                      ) : (
-                        <button onClick={() => handleOverwrite(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem', backgroundColor: 'var(--accent-color)', borderColor: 'var(--accent-color)', color: 'white' }}>Overwrite</button>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
             </div>
           </div>
         </div>
