@@ -84,7 +84,8 @@ function App() {
     const saved = localStorage.getItem('savedBuilds');
     return saved ? JSON.parse(saved) : [];
   });
-  const [showLoadMenu, setShowLoadMenu] = useState(false);
+  const [modalState, setModalState] = useState<'none' | 'load' | 'save'>('none');
+  const [newBuildName, setNewBuildName] = useState<string>('');
 
   useEffect(() => {
     localStorage.setItem('savedBuilds', JSON.stringify(savedBuilds));
@@ -95,7 +96,7 @@ function App() {
     const isDuplicateDamage = savedBuilds.some(build => {
       return (Object.keys(damages) as PartId[]).every(key => 
         build.damages[key] === damages[key]
-      );
+      ) && build.fireInterval === fireInterval;
     });
 
     if (isDuplicateDamage) {
@@ -103,35 +104,35 @@ function App() {
       return;
     }
 
-    const defaultName = `Build ${savedBuilds.length + 1}`;
-    let buildName = window.prompt('Nhập tên cho cấu hình này:', defaultName);
+    setNewBuildName(`Build ${savedBuilds.length + 1}`);
+    setModalState('save');
+  };
+  
+  const handleSaveNew = () => {
+    let name = newBuildName.trim();
+    if (!name) return;
     
-    if (buildName === null) return;
-    
-    buildName = buildName.trim() || defaultName;
-
-    // 2. Check if name already exists
-    const existingBuild = savedBuilds.find(build => build.name.toLowerCase() === buildName!.toLowerCase());
-    
-    if (existingBuild) {
-      const confirmOverwrite = window.confirm(`Cấu hình mang tên "${existingBuild.name}" đã tồn tại. Bạn có muốn ghi đè lên nó không?`);
-      if (!confirmOverwrite) return;
-      
-      setSavedBuilds(prev => prev.map(b => b.id === existingBuild.id ? { ...b, damages: { ...damages }, fireInterval } : b));
-      setShowLoadMenu(true);
+    const isDuplicateName = savedBuilds.some(b => b.name.toLowerCase() === name.toLowerCase());
+    if (isDuplicateName) {
+      window.alert('Lỗi: Tên cấu hình này đã tồn tại!');
       return;
     }
-
+    
     setSavedBuilds(prev => [
       ...prev,
       {
         id: Date.now(),
-        name: buildName!,
+        name,
         damages: { ...damages },
         fireInterval
       }
     ]);
-    setShowLoadMenu(true);
+    setModalState('none');
+  };
+
+  const handleOverwrite = (id: number) => {
+    setSavedBuilds(prev => prev.map(b => b.id === id ? { ...b, damages: { ...damages }, fireInterval } : b));
+    setModalState('none');
   };
 
   const handleRenameBuild = (id: number) => {
@@ -153,19 +154,15 @@ function App() {
     setSavedBuilds(prev => prev.map(b => b.id === id ? { ...b, name: newName! } : b));
   };
 
-  const handleToggleLoadMenu = () => {
-    setShowLoadMenu(!showLoadMenu);
-  };
-
   const handleLoadBuild = (buildDamages: Record<PartId, string>, buildFireInterval?: string) => {
     setDamages(buildDamages);
     setFireInterval(buildFireInterval || '');
-    setShowLoadMenu(false);
+    setModalState('none');
   };
 
   const handleDeleteBuild = (id: number) => {
     setSavedBuilds(prev => prev.filter(b => b.id !== id));
-    if (savedBuilds.length <= 1) setShowLoadMenu(false);
+    if (savedBuilds.length <= 1) setModalState('none');
   };
 
   const handleClearDamages = () => {
@@ -287,34 +284,11 @@ function App() {
             <h2>Quick Actions</h2>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
               <button className="btn" onClick={handleSaveDamages}>Save Build</button>
-              <button className="btn" onClick={handleToggleLoadMenu} disabled={savedBuilds.length === 0}>
+              <button className="btn" onClick={() => setModalState('load')} disabled={savedBuilds.length === 0}>
                 Load Build ({savedBuilds.length})
               </button>
               <button className="btn" onClick={handleClearDamages}>Clear All</button>
             </div>
-            
-            {showLoadMenu && savedBuilds.length > 0 && (
-              <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {savedBuilds.map(build => (
-                  <div key={build.id} style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center', 
-                    backgroundColor: 'var(--card-bg)', 
-                    padding: '0.5rem 1rem', 
-                    borderRadius: '4px', 
-                    border: '1px solid var(--border-color)' 
-                  }}>
-                    <span style={{ fontWeight: 'bold' }}>{build.name}</span>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button onClick={() => handleLoadBuild(build.damages, build.fireInterval)} className="btn" style={{ padding: '0.2rem 0.6rem', fontSize: '0.9rem' }}>Load</button>
-                      <button onClick={() => handleRenameBuild(build.id)} className="btn" style={{ padding: '0.2rem 0.6rem', fontSize: '0.9rem' }}>Rename</button>
-                      <button onClick={() => handleDeleteBuild(build.id)} className="btn" style={{ padding: '0.2rem 0.6rem', fontSize: '0.9rem', backgroundColor: '#d32f2f', borderColor: '#d32f2f', color: 'white' }}>Delete</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
 
           <div className="panel" style={{ padding: '1rem' }}>
@@ -446,6 +420,67 @@ function App() {
           </div>
         </div>
       </div>
+      {modalState !== 'none' && (
+        <div className="modal-overlay" onClick={() => setModalState('none')}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{modalState === 'load' ? 'Load Build' : 'Save Build'}</h2>
+              <button className="close-btn" onClick={() => setModalState('none')}>&times;</button>
+            </div>
+            
+            {modalState === 'save' && (
+              <div style={{ marginBottom: '2rem' }}>
+                <h3 style={{ marginTop: 0, marginBottom: '0.8rem', fontSize: '1.2rem' }}>Save as New Build</h3>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input 
+                    style={{ flex: 1, padding: '0.6rem', background: 'var(--input-bg)', color: 'var(--text-color)', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+                    value={newBuildName}
+                    onChange={e => setNewBuildName(e.target.value)}
+                    placeholder="Build Name"
+                  />
+                  <button className="btn" onClick={handleSaveNew}>Save New</button>
+                </div>
+              </div>
+            )}
+
+            <div>
+              {modalState === 'save' && savedBuilds.length > 0 && (
+                <h3 style={{ marginTop: 0, marginBottom: '0.8rem', fontSize: '1.2rem' }}>Or Overwrite Existing</h3>
+              )}
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                {savedBuilds.length === 0 && modalState === 'load' ? (
+                  <p>No saved builds found.</p>
+                ) : (
+                  savedBuilds.map(build => (
+                    <div key={build.id} style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center', 
+                      backgroundColor: 'var(--card-bg)', 
+                      padding: '0.8rem 1rem', 
+                      borderRadius: '4px', 
+                      border: '1px solid var(--border-color)' 
+                    }}>
+                      <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{build.name}</span>
+                      
+                      {modalState === 'load' ? (
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button onClick={() => handleLoadBuild(build.damages, build.fireInterval)} className="btn" style={{ padding: '0.3rem 0.8rem' }}>Load</button>
+                          <button onClick={() => handleRenameBuild(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem' }}>Rename</button>
+                          <button onClick={() => handleDeleteBuild(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem', backgroundColor: '#d32f2f', borderColor: '#d32f2f', color: 'white' }}>Delete</button>
+                        </div>
+                      ) : (
+                        <button onClick={() => handleOverwrite(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem', backgroundColor: 'var(--accent-color)', borderColor: 'var(--accent-color)', color: 'white' }}>Overwrite</button>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
