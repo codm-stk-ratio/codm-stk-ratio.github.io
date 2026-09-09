@@ -421,8 +421,15 @@ function App() {
         </div>
       </div>
       {modalState !== 'none' && (
-        <div className="modal-overlay" onClick={() => setModalState('none')}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
+        <div 
+          className="modal-overlay" 
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) {
+              setModalState('none');
+            }
+          }}
+        >
+          <div className="modal-content">
             <div className="modal-header">
               <h2>{modalState === 'load' ? 'Load Build' : 'Save Build'}</h2>
               <button className="close-btn" onClick={() => setModalState('none')}>&times;</button>
