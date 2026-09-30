@@ -3,11 +3,12 @@ import { CharacterModel, bodyPartsList } from './components/CharacterModel';
 import type { PartId } from './components/CharacterModel';
 import { calculateKillProbabilities, calculateCombinations } from './utils/ttkMath';
 import type { BodyPartStats } from './utils/ttkMath';
+import { translations, languageNames, type Locale } from './locales';
 import './index.css';
 
 const GAME_MODES = [
-  { id: 'mp', name: 'Multiplayer (100 HP)', defaultHp: 100 },
-  { id: 'br', name: 'Battle Royale (300 HP)', defaultHp: 300 },
+  { id: 'mp', name: 'app.mp_100', defaultHp: 100 },
+  { id: 'br', name: 'app.br_300', defaultHp: 300 },
 ];
 
 const FIXED_PROBABILITIES: Record<string, Record<PartId, number>> = {
@@ -29,19 +30,6 @@ const FIXED_PROBABILITIES: Record<string, Record<PartId, number>> = {
   }
 };
 
-const t = (key: string) => {
-  const dict: Record<string, string> = {
-    'alert.duplicate_damage': 'Lỗi: Một cấu hình với các chỉ số sát thương y hệt đã được lưu trước đó!',
-    'alert.duplicate_name': 'Lỗi: Tên cấu hình này đã tồn tại!',
-    'prompt.rename_build': 'Nhập tên mới cho cấu hình này:',
-    'btn.ok': 'OK',
-    'btn.cancel': 'Hủy',
-    'title.alert': 'Thông báo',
-    'title.prompt': 'Nhập liệu'
-  };
-  return dict[key] || key;
-};
-
 type DialogConfig = {
   isOpen: boolean;
   type: 'alert' | 'prompt';
@@ -51,7 +39,7 @@ type DialogConfig = {
   onCancel?: () => void;
 };
 
-const CustomDialog = ({ config, onClose }: { config: DialogConfig, onClose: () => void }) => {
+const CustomDialog = ({ config, onClose, t }: { config: DialogConfig, onClose: () => void, t: (key: string) => string }) => {
   const [inputValue, setInputValue] = useState('');
 
   useEffect(() => {
@@ -148,7 +136,7 @@ function App() {
 
   const [activePart, setActivePart] = useState<PartId | null>(null);
 
-  // --- NEW: Theme State ---
+  // --- Theme State ---
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     return (localStorage.getItem('theme') as 'dark' | 'light') || 'dark';
   });
@@ -160,6 +148,25 @@ function App() {
 
   const toggleTheme = () => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
+
+  // --- Locale State ---
+  const [locale, setLocale] = useState<Locale>(() => {
+    return (localStorage.getItem('locale') as Locale) || 'vi';
+  });
+
+  useEffect(() => {
+    document.body.setAttribute('data-lang', locale);
+    localStorage.setItem('locale', locale);
+  }, [locale]);
+
+  const t = (key: string, ...args: (string | number)[]) => {
+    const dict = translations[locale];
+    let str = dict[key] || key;
+    args.forEach((arg, i) => {
+      str = str.replace(`{${i}}`, String(arg));
+    });
+    return str;
   };
 
   // --- NEW: Saved Builds State ---
@@ -306,50 +313,71 @@ function App() {
 
   return (
     <div className="app-container">
-      <header className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <header className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <h1>CODM STK RATIO</h1>
-        <button className="theme-toggle" onClick={toggleTheme} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          {theme === 'dark' ? (
-            <>
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="5"></circle>
-                <line x1="12" y1="1" x2="12" y2="3"></line>
-                <line x1="12" y1="21" x2="12" y2="23"></line>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                <line x1="1" y1="12" x2="3" y2="12"></line>
-                <line x1="21" y1="12" x2="23" y2="12"></line>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-              </svg>
-              Light Mode
-            </>
-          ) : (
-            <>
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-              </svg>
-              Dark Mode
-            </>
-          )}
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <select 
+            value={locale}
+            onChange={e => setLocale(e.target.value as Locale)}
+            style={{
+              background: 'transparent',
+              color: 'var(--text-color)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '4px',
+              padding: '0.4rem 0.5rem 0.4rem 2rem',
+              fontFamily: 'inherit',
+              cursor: 'pointer',
+              appearance: 'none',
+              backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'></circle><line x1='2' y1='12' x2='22' y2='12'></line><path d='M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z'></path></svg>")`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: '6px center'
+            }}
+          >
+            {Object.entries(languageNames).map(([code, name]) => (
+              <option key={code} value={code} style={{ color: '#000' }}>{name}</option>
+            ))}
+          </select>
+
+          <button className="theme-toggle" onClick={toggleTheme} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            {theme === 'dark' ? (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="5"></circle>
+                  <line x1="12" y1="1" x2="12" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="23"></line>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                  <line x1="1" y1="12" x2="3" y2="12"></line>
+                  <line x1="21" y1="12" x2="23" y2="12"></line>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+              </>
+            ) : (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+              </>
+            )}
+          </button>
+        </div>
       </header>
 
       <div className="main-content">
         <div className="left-panel">
           <div className="panel" style={{ marginBottom: '2rem' }}>
-            <h2>Settings</h2>
             <div className="input-group">
-              <label>Game Mode</label>
+              <label>{t('app.game_mode')}</label>
               <select value={mode} onChange={handleModeChange}>
                 {GAME_MODES.map(m => (
-                  <option key={m.id} value={m.id}>{m.name}</option>
+                  <option key={m.id} value={m.id}>{t(m.name)}</option>
                 ))}
               </select>
             </div>
             
             <div className="input-group">
-              <label>Custom Health</label>
+              <label>{t('app.custom_health')}</label>
               <input 
                 type="number" 
                 value={health} 
@@ -360,7 +388,7 @@ function App() {
             </div>
 
             <div className="input-group">
-              <label>Fire Interval (ms)</label>
+              <label>{t('app.fire_interval')}</label>
               <input 
                 type="number" 
                 value={fireInterval} 
@@ -372,30 +400,31 @@ function App() {
           </div>
 
           <div className="panel" style={{ marginBottom: '2rem' }}>
-            <h2>Quick Actions</h2>
+            <h2>{t('app.quick_actions')}</h2>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <button className="btn" onClick={handleSaveDamages}>Save Build</button>
+              <button className="btn" onClick={handleSaveDamages}>{t('btn.save_build')}</button>
               <button className="btn" onClick={() => setModalState('load')} disabled={savedBuilds.length === 0}>
-                Load Build ({savedBuilds.length})
+                {t('btn.load_build')} ({savedBuilds.length})
               </button>
-              <button className="btn" onClick={handleClearDamages}>Clear All</button>
+              <button className="btn" onClick={handleClearDamages}>{t('btn.clear_all')}</button>
             </div>
           </div>
 
           <div className="panel" style={{ padding: '1rem' }}>
-            <h2 style={{ padding: '0 1rem' }}>Character Model</h2>
+            <h2 style={{ padding: '0 1rem' }}>{t('title.character_model')}</h2>
             <CharacterModel 
               damages={damages}
               onDamageChange={handleDamageChange}
               activePart={activePart} 
               onPartClick={(part) => setActivePart(part === activePart ? null : part)} 
+              t={t}
             />
           </div>
         </div>
 
         <div className="right-panel">
           <div className="panel">
-            <h2>Kill Probability Analysis</h2>
+            <h2>{t('title.kill_prob')}</h2>
             
             {isReady && probResults.length > 0 ? (
               <>
@@ -420,7 +449,7 @@ function App() {
                     <>
                       {fi > 0 && expectedTTK > 0 && (
                         <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: 'rgba(255, 152, 0, 0.1)', border: '1px solid var(--accent-color)', borderRadius: '4px' }}>
-                          <span style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>Average Time-To-Kill: </span>
+                          <span style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{t('avg.ttk')}</span>
                           <span style={{ color: 'var(--accent-color)', fontSize: '1.2rem', fontWeight: 'bold' }}>{formatTTK(expectedTTK)} ms</span>
                         </div>
                       )}
@@ -428,17 +457,17 @@ function App() {
                       <table className="results-table">
                         <thead>
                           <tr>
-                            <th>Shots (STK)</th>
-                            {fi > 0 && <th>TTK (ms)</th>}
-                            <th>Exact Prob.</th>
-                            <th>Cumulative Prob.</th>
+                            <th>{t('table.shots')}</th>
+                            {fi > 0 && <th>{t('table.ttk')}</th>}
+                            <th>{t('table.exact')}</th>
+                            <th>{t('table.cumulative')}</th>
                           </tr>
                         </thead>
                         <tbody>
                           {probResults.map(r => (
                             r.probability > 0.01 && (
                               <tr key={r.shots}>
-                                <td>{r.shots} Shots</td>
+                                <td>{r.shots}{t('table.shots_suffix')}</td>
                                 {fi > 0 && <td>{formatTTK((r.shots - 1) * fi)} ms</td>}
                                 <td>{r.probability.toFixed(2)}%</td>
                                 <td>{r.cumulativeProbability.toFixed(2)}%</td>
@@ -467,16 +496,16 @@ function App() {
                     return (
                       <div key={stk} style={{ marginBottom: '1.5rem', backgroundColor: 'var(--card-bg)', padding: '1rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
                         <h3 style={{ color: 'var(--accent-color)', margin: '0 0 1rem 0' }}>
-                          {stk}-Shot Kill Combinations
+                          {stk}{t('table.shots_suffix')} Kill
                           {fi > 0 && ` (TTK: ${formatTTK((stk - 1) * fi)} ms)`}
                         </h3>
                         {stk === maxSTK ? (
-                          <p>100% Consistent (Any remaining combinations guarantee a kill in {stk} shots).</p>
+                          <p>{t('prob.consistent', stk)}</p>
                         ) : (
                           <ul style={{ margin: 0, paddingLeft: '1.2rem', lineHeight: '1.6' }}>
                             {combs.map((comb, idx) => (
                               <li key={idx}>
-                                {comb.parts.map(p => `${p.count}x ${p.name} (${p.damage})`).join(' + ')}
+                                {comb.parts.map(p => `${p.count}x ${t('part.' + p.name)} (${p.damage})`).join(' + ')}
                               </li>
                             ))}
                           </ul>
@@ -487,10 +516,10 @@ function App() {
                   {maxSTK > 0 && !combinations[maxSTK] && (
                     <div style={{ marginBottom: '1.5rem', backgroundColor: 'var(--card-bg)', padding: '1rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
                         <h3 style={{ color: 'var(--accent-color)', margin: '0 0 1rem 0' }}>
-                          {maxSTK}-Shot Kill
+                          {maxSTK}{t('table.shots_suffix')} Kill
                           {parseFloat(fireInterval) > 0 && ` (TTK: ${parseFloat(((maxSTK - 1) * parseFloat(fireInterval)).toFixed(2))} ms)`}
                         </h3>
-                        <p>100% Consistent (Any remaining combinations guarantee a kill in {maxSTK} shots).</p>
+                        <p>{t('prob.consistent', maxSTK)}</p>
                     </div>
                   )}
                 </div>
@@ -504,8 +533,8 @@ function App() {
                 textAlign: 'center',
                 marginTop: '2rem'
               }}>
-                <h3 style={{ color: 'var(--accent-color)', marginTop: 0 }}>Waiting for Input...</h3>
-                <p style={{ opacity: 0.8 }}>Please enter valid damage values for all body parts to view the analysis.</p>
+                <h3 style={{ color: 'var(--accent-color)', marginTop: 0 }}>{t('prob.waiting')}</h3>
+                <p style={{ opacity: 0.8 }}>{t('prob.enter_valid')}</p>
               </div>
             )}
           </div>
@@ -522,32 +551,32 @@ function App() {
         >
           <div className="modal-content">
             <div className="modal-header">
-              <h2>{modalState === 'load' ? 'Load Build' : 'Save Build'}</h2>
+              <h2>{modalState === 'load' ? t('btn.load_build') : t('btn.save_build')}</h2>
               <button className="close-btn" onClick={() => setModalState('none')}>&times;</button>
             </div>
             
             {modalState === 'save' && (
               <div style={{ marginBottom: '2rem' }}>
-                <h3 style={{ marginTop: 0, marginBottom: '0.8rem', fontSize: '1.2rem' }}>Save as New Build</h3>
+                <h3 style={{ marginTop: 0, marginBottom: '0.8rem', fontSize: '1.2rem' }}>{t('modal.save_new')}</h3>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <input 
                     style={{ flex: 1, padding: '0.6rem', background: 'var(--input-bg)', color: 'var(--text-color)', border: '1px solid var(--border-color)', borderRadius: '4px', fontFamily: 'inherit', fontSize: '1.1rem' }}
                     value={newBuildName}
                     onChange={e => setNewBuildName(e.target.value)}
-                    placeholder="Build Name"
+                    placeholder={t('modal.build_name')}
                   />
-                  <button className="btn" onClick={handleSaveNew}>Save New</button>
+                  <button className="btn" onClick={handleSaveNew}>{t('btn.save_new')}</button>
                 </div>
               </div>
             )}
 
             {modalState === 'save' && savedBuilds.length > 0 && (
-              <h3 style={{ marginTop: 0, marginBottom: '0.8rem', fontSize: '1.2rem' }}>Or Overwrite Existing</h3>
+              <h3 style={{ marginTop: 0, marginBottom: '0.8rem', fontSize: '1.2rem' }}>{t('modal.overwrite_existing')}</h3>
             )}
             
             <div className="modal-body" style={{ gap: '0.8rem' }}>
               {savedBuilds.length === 0 && modalState === 'load' ? (
-                <p>No saved builds found.</p>
+                <p>{t('modal.no_saved')}</p>
               ) : (
                 savedBuilds.map(build => (
                   <div key={build.id} style={{ 
@@ -564,12 +593,12 @@ function App() {
                     
                     {modalState === 'load' ? (
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button onClick={() => handleLoadBuild(build.damages, build.fireInterval)} className="btn" style={{ padding: '0.3rem 0.8rem' }}>Load</button>
-                        <button onClick={() => handleRenameBuild(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem' }}>Rename</button>
-                        <button onClick={() => handleDeleteBuild(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem', backgroundColor: '#d32f2f', borderColor: '#d32f2f', color: 'white' }}>Delete</button>
+                        <button onClick={() => handleLoadBuild(build.damages, build.fireInterval)} className="btn" style={{ padding: '0.3rem 0.8rem' }}>{t('btn.load')}</button>
+                        <button onClick={() => handleRenameBuild(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem' }}>{t('btn.rename')}</button>
+                        <button onClick={() => handleDeleteBuild(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem', backgroundColor: '#d32f2f', borderColor: '#d32f2f', color: 'white' }}>{t('btn.delete')}</button>
                       </div>
                     ) : (
-                      <button onClick={() => handleOverwrite(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem', backgroundColor: 'var(--accent-color)', borderColor: 'var(--accent-color)', color: 'white' }}>Overwrite</button>
+                      <button onClick={() => handleOverwrite(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem', backgroundColor: 'var(--accent-color)', borderColor: 'var(--accent-color)', color: 'white' }}>{t('btn.overwrite')}</button>
                     )}
                   </div>
                 ))
@@ -582,6 +611,7 @@ function App() {
       <CustomDialog 
         config={dialogConfig} 
         onClose={() => setDialogConfig(prev => ({ ...prev, isOpen: false }))} 
+        t={t}
       />
     </div>
   );
