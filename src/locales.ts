@@ -104,7 +104,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     'part.leg': 'Chân',
     'app.game_mode': 'Chế độ chơi',
     'app.custom_health': 'Máu tùy chỉnh',
-    'app.fire_interval': 'Giãn cách bắn (ms)',
+    'app.fire_interval': 'Thời gian nghỉ bắn (ms)',
     'avg.ttk': 'Thời gian hạ gục (TTK) trung bình: ',
     'table.shots': 'Số viên (STK)',
     'table.ttk': 'TTK (ms)',
