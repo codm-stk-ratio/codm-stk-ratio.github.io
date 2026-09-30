@@ -56,13 +56,15 @@ interface CharacterModelProps {
   onDamageChange: (part: PartId, value: string) => void;
   activePart: PartId | null;
   onPartClick: (part: PartId) => void;
+  t: (key: string, ...args: (string | number)[]) => string;
 }
 
 export const CharacterModel: React.FC<CharacterModelProps> = ({ 
   damages, 
   onDamageChange,
   activePart,
-  onPartClick
+  onPartClick,
+  t
 }) => {
   return (
     <div className="model-layout-container">
@@ -114,7 +116,7 @@ export const CharacterModel: React.FC<CharacterModelProps> = ({
               }}
               onClick={() => onPartClick(part.id)}
             >
-              <div className="part-label" style={{ color: config.color }}>{part.label}</div>
+              <div className="part-label" style={{ color: config.color }}>{t('part.' + part.id)}</div>
               <input 
                 type="number"
                 value={damages[part.id] || ''}

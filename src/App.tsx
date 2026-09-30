@@ -478,6 +478,7 @@ function App() {
               onDamageChange={handleDamageChange}
               activePart={activePart} 
               onPartClick={(part) => setActivePart(part === activePart ? null : part)} 
+              t={t}
             />
           </div>
         </div>

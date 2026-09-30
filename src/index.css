@@ -328,16 +328,17 @@ input[type="number"] {
   width: 75%; /* 75% of 38% wrapper = 28.5% of outer. Perfectly fits in 31% margin */
   min-width: 60px;
   max-width: 130px;
-  font-family: 'Refrigerator Deluxe', sans-serif;
+  aspect-ratio: 2.3 / 1;
   background: var(--input-bg);
   border: 2px solid var(--input-border);
   border-radius: 6px;
-  padding: 0.5rem 0.2rem;
+  padding: 0;
   z-index: 10;
   transition: all 0.3s;
   cursor: pointer;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
   transform: translateY(-50%); /* Centered vertically against top % */
 }
