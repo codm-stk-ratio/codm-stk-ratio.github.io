@@ -87,6 +87,7 @@ body[data-lang="zh"], body[data-lang="ja"], body[data-lang="ko"] {
   color: var(--accent-color);
   letter-spacing: 2px;
   text-align: left;
+  font-family: 'Refrigerator Deluxe', sans-serif;
 }
 
 .main-content {
