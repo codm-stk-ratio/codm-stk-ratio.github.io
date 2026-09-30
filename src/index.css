@@ -19,6 +19,13 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: 'Refrigerator Deluxe';
+  src: url('/font/Refrigerator-Deluxe-Font-Family/Refrigerator-Deluxe-Font-Family/Refrigerator Deluxe Heavy.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+}
+
 :root {
   --bg-color: #0a0a0a;
   --text-color: #ffffff;
@@ -88,6 +95,7 @@ body[data-lang="zh"], body[data-lang="ja"], body[data-lang="ko"] {
   letter-spacing: 2px;
   text-align: left;
   font-family: 'Refrigerator Deluxe', sans-serif;
+  font-weight: 900;
 }
 
 .main-content {
