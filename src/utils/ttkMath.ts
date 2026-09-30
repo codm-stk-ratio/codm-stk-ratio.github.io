@@ -74,7 +74,7 @@ export function calculateKillProbabilities(
   return results;
 }
 
-function getLabelForDamage(reqDmg: number, uniqueDamages: number[], dmgGroups: Map<number, string[]>): string {
+function getLabelForDamage(reqDmg: number, uniqueDamages: number[], dmgGroups: Map<number, string[]>, totalPartsCount: number): string {
   let applicableParts: string[] = [];
   
   for (const dmg of uniqueDamages) {
@@ -85,15 +85,14 @@ function getLabelForDamage(reqDmg: number, uniqueDamages: number[], dmgGroups: M
 
   applicableParts = Array.from(new Set(applicableParts));
   
-  const hasHead = applicableParts.includes('Head');
+  if (applicableParts.length === totalPartsCount) {
+    return 'ANY_PART';
+  }
+  
+  const hasHead = applicableParts.some(p => p.toUpperCase() === 'HEAD');
   
   if (applicableParts.length > 1 && hasHead) {
-    applicableParts = applicableParts.filter(p => p !== 'Head');
-  }
-
-  // Total non-head parts is 5 (Chest, Stomach, Upper Arm, Lower Arm, Leg)
-  if (applicableParts.length === 5) {
-    return 'Any Part';
+    applicableParts = applicableParts.filter(p => p.toUpperCase() !== 'HEAD');
   }
 
   return applicableParts.join('/');
@@ -122,6 +121,8 @@ export function calculateCombinations(health: number, bodyParts: BodyPartStats[]
   
   let iterations = 0;
   const MAX_ITERATIONS = 50000; // Fail-safe to prevent browser hang on low-end phones
+
+  const totalPartsCount = bodyParts.filter(p => p.damage > 0).length;
 
   const findCombs = (
     index: number,
@@ -167,7 +168,7 @@ export function calculateCombinations(health: number, bodyParts: BodyPartStats[]
             parts: currentCombination.map(c => ({
               damage: c.dmg,
               count: c.count,
-              name: getLabelForDamage(c.dmg, uniqueDamages, dmgGroups)
+              name: getLabelForDamage(c.dmg, uniqueDamages, dmgGroups, totalPartsCount)
             }))
           });
         }

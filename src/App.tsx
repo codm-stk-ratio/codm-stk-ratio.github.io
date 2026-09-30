@@ -556,7 +556,7 @@ function App() {
                     const formatTTK = (val: number) => parseFloat(val.toFixed(2));
 
                     const translatePartNames = (name: string) => {
-                      if (name === 'Any Part') return t('part.any_part');
+                      if (name === 'ANY_PART') return t('part.any_part');
                       return name.split('/').map(n => t('part.' + n.toLowerCase().replace(' ', '_'))).join('/');
                     };
 
