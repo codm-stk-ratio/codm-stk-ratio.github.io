@@ -152,7 +152,8 @@ function App() {
 
   // --- Locale State ---
   const [locale, setLocale] = useState<Locale>(() => {
-    return (localStorage.getItem('locale') as Locale) || 'vi';
+    const saved = localStorage.getItem('locale') as Locale;
+    return (saved && translations[saved]) ? saved : 'vi';
   });
 
   useEffect(() => {
@@ -161,7 +162,7 @@ function App() {
   }, [locale]);
 
   const t = (key: string, ...args: (string | number)[]) => {
-    const dict = translations[locale];
+    const dict = translations[locale] || translations['vi'];
     let str = dict[key] || key;
     args.forEach((arg, i) => {
       str = str.replace(`{${i}}`, String(arg));
