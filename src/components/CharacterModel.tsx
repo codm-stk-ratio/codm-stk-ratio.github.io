@@ -3,12 +3,12 @@ import React from 'react';
 export type PartId = 'head' | 'chest' | 'stomach' | 'upper_arm' | 'lower_arm' | 'leg';
 
 export const bodyPartsList: { id: PartId; src: string; label: string }[] = [
-  { id: 'head', src: `${import.meta.env.BASE_URL}image/bodyparts/head.png`, label: 'Head' },
-  { id: 'chest', src: `${import.meta.env.BASE_URL}image/bodyparts/chest.png`, label: 'Chest' },
-  { id: 'stomach', src: `${import.meta.env.BASE_URL}image/bodyparts/stomach.png`, label: 'Stomach' },
-  { id: 'upper_arm', src: `${import.meta.env.BASE_URL}image/bodyparts/upper_arm.png`, label: 'Upper Arm' },
-  { id: 'lower_arm', src: `${import.meta.env.BASE_URL}image/bodyparts/lower_arm.png`, label: 'Lower Arm' },
-  { id: 'leg', src: `${import.meta.env.BASE_URL}image/bodyparts/leg.png`, label: 'Leg' },
+  { id: 'head', src: `${import.meta.env.BASE_URL}image/bodyparts/head.png`, label: 'HEAD' },
+  { id: 'chest', src: `${import.meta.env.BASE_URL}image/bodyparts/chest.png`, label: 'CHEST' },
+  { id: 'stomach', src: `${import.meta.env.BASE_URL}image/bodyparts/stomach.png`, label: 'STOMACH' },
+  { id: 'upper_arm', src: `${import.meta.env.BASE_URL}image/bodyparts/upper_arm.png`, label: 'UPPER ARM' },
+  { id: 'lower_arm', src: `${import.meta.env.BASE_URL}image/bodyparts/lower_arm.png`, label: 'LOWER ARM' },
+  { id: 'leg', src: `${import.meta.env.BASE_URL}image/bodyparts/leg.png`, label: 'LEG' },
 ];
 
 // All coordinates are relative to the central image wrapper (1207x1303)
@@ -56,15 +56,13 @@ interface CharacterModelProps {
   onDamageChange: (part: PartId, value: string) => void;
   activePart: PartId | null;
   onPartClick: (part: PartId) => void;
-  t: (key: string) => string;
 }
 
 export const CharacterModel: React.FC<CharacterModelProps> = ({ 
   damages, 
   onDamageChange,
   activePart,
-  onPartClick,
-  t
+  onPartClick
 }) => {
   return (
     <div className="model-layout-container">
@@ -116,7 +114,7 @@ export const CharacterModel: React.FC<CharacterModelProps> = ({
               }}
               onClick={() => onPartClick(part.id)}
             >
-              <div className="part-label" style={{ color: config.color }}>{t('part.' + part.id)}</div>
+              <div className="part-label" style={{ color: config.color }}>{part.label}</div>
               <input 
                 type="number"
                 value={damages[part.id] || ''}
