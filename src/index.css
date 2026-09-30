@@ -357,10 +357,8 @@ input[type="number"] {
   text-align: center;
   text-shadow: none;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   width: 95%;
-  line-height: 1;
+  line-height: 1.2;
 }
 
 .floating-input-box input {
