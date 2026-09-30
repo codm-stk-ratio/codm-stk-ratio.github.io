@@ -89,11 +89,7 @@ function getLabelForDamage(reqDmg: number, uniqueDamages: number[], dmgGroups: M
     return 'ANY_PART';
   }
   
-  const hasHead = applicableParts.some(p => p.toUpperCase() === 'HEAD');
-  
-  if (applicableParts.length > 1 && hasHead) {
-    applicableParts = applicableParts.filter(p => p.toUpperCase() !== 'HEAD');
-  }
+
 
   return applicableParts.join('/');
 }
