@@ -57,7 +57,11 @@ export const translations: Record<Locale, Record<string, string>> = {
     'table.ttk': 'TTK (ms)',
     'table.exact': 'Exact Prob.',
     'table.cumulative': 'Cumulative Prob.',
-    'table.shots_suffix': ' Shots'
+    'table.shots_suffix': ' Shots',
+    'title.shot_combinations': 'Shot Combinations',
+    'subtitle.shot_combinations': 'Minimum body part combinations required to kill.',
+    'prob.shots_kill': '{0} Shots Kill',
+    'part.any_part': 'Any Part'
   },
   vi: {
     'alert.duplicate_damage': 'Lỗi: Một cấu hình với các chỉ số sát thương y hệt đã được lưu trước đó!',
@@ -106,7 +110,11 @@ export const translations: Record<Locale, Record<string, string>> = {
     'table.ttk': 'TTK (ms)',
     'table.exact': 'Xác suất',
     'table.cumulative': 'Cộng dồn',
-    'table.shots_suffix': ' viên'
+    'table.shots_suffix': ' viên',
+    'title.shot_combinations': 'Tổ hợp vị trí bắn trúng',
+    'subtitle.shot_combinations': 'Tổ hợp bộ phận bắn trúng để đạt được STK tối thiểu',
+    'prob.shots_kill': 'Hạ gục với {0} phát bắn',
+    'part.any_part': 'Bất kỳ phần nào'
   },
   th: {
     'alert.duplicate_damage': 'ข้อผิดพลาด: มีการตั้งค่าความเสียหายนี้อยู่แล้ว!',
@@ -155,7 +163,11 @@ export const translations: Record<Locale, Record<string, string>> = {
     'table.ttk': 'TTK (ms)',
     'table.exact': 'ความน่าจะเป็น',
     'table.cumulative': 'สะสม',
-    'table.shots_suffix': ' นัด'
+    'table.shots_suffix': ' นัด',
+    'title.shot_combinations': 'รูปแบบการยิงที่โดน',
+    'subtitle.shot_combinations': 'รูปแบบส่วนของร่างกายที่จำเป็นในการฆ่า',
+    'prob.shots_kill': 'ฆ่าด้วย {0} นัด',
+    'part.any_part': 'ส่วนใดก็ได้'
   },
   zh: {
     'alert.duplicate_damage': '错误：已存在具有相同伤害配置的方案！',
@@ -204,7 +216,11 @@ export const translations: Record<Locale, Record<string, string>> = {
     'table.ttk': 'TTK (ms)',
     'table.exact': '精确概率',
     'table.cumulative': '累积概率',
-    'table.shots_suffix': ' 枪'
+    'table.shots_suffix': ' 枪',
+    'title.shot_combinations': '命中组合',
+    'subtitle.shot_combinations': '击杀所需的最少部位组合',
+    'prob.shots_kill': '{0} 枪击杀',
+    'part.any_part': '任意部位'
   },
   ja: {
     'alert.duplicate_damage': 'エラー：同じダメージ設定のビルドが既に存在します！',
@@ -253,7 +269,11 @@ export const translations: Record<Locale, Record<string, string>> = {
     'table.ttk': 'TTK (ms)',
     'table.exact': '正確な確率',
     'table.cumulative': '累積確率',
-    'table.shots_suffix': ' 発'
+    'table.shots_suffix': ' 発',
+    'title.shot_combinations': 'ヒット組み合わせ',
+    'subtitle.shot_combinations': 'キルに必要な最小の部位組み合わせ',
+    'prob.shots_kill': '{0} 発キル',
+    'part.any_part': '任意の部位'
   },
   ko: {
     'alert.duplicate_damage': '오류: 동일한 데미지 설정이 이미 존재합니다!',
@@ -302,6 +322,10 @@ export const translations: Record<Locale, Record<string, string>> = {
     'table.ttk': 'TTK (ms)',
     'table.exact': '정확한 확률',
     'table.cumulative': '누적 확률',
-    'table.shots_suffix': ' 발'
+    'table.shots_suffix': ' 발',
+    'title.shot_combinations': '피격 조합',
+    'subtitle.shot_combinations': '킬에 필요한 최소 부위 조합',
+    'prob.shots_kill': '{0}발 킬',
+    'part.any_part': '모든 부위'
   }
 };

@@ -481,9 +481,9 @@ function App() {
                 })()}
                 
                 <div style={{ marginTop: '3rem' }}>
-                  <h2>Shot Combinations</h2>
+                  <h2>{t('title.shot_combinations')}</h2>
                   <p style={{ opacity: 0.7, marginBottom: '1rem', lineHeight: '1.5' }}>
-                    Minimum body part combinations required to kill.
+                    {t('subtitle.shot_combinations')}
                   </p>
                   
                   {Object.keys(combinations).map(stkStr => {
@@ -493,10 +493,15 @@ function App() {
                     const fi = parseFloat(fireInterval) || 0;
                     const formatTTK = (val: number) => parseFloat(val.toFixed(2));
 
+                    const translatePartNames = (name: string) => {
+                      if (name === 'Any Part') return t('part.any_part');
+                      return name.split('/').map(n => t('part.' + n.toLowerCase().replace(' ', '_'))).join('/');
+                    };
+
                     return (
                       <div key={stk} style={{ marginBottom: '1.5rem', backgroundColor: 'var(--card-bg)', padding: '1rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
                         <h3 style={{ color: 'var(--accent-color)', margin: '0 0 1rem 0' }}>
-                          {stk}{t('table.shots_suffix')} Kill
+                          {t('prob.shots_kill', stk)}
                           {fi > 0 && ` (TTK: ${formatTTK((stk - 1) * fi)} ms)`}
                         </h3>
                         {stk === maxSTK ? (
@@ -505,7 +510,7 @@ function App() {
                           <ul style={{ margin: 0, paddingLeft: '1.2rem', lineHeight: '1.6' }}>
                             {combs.map((comb, idx) => (
                               <li key={idx}>
-                                {comb.parts.map(p => `${p.count}x ${t('part.' + p.name)} (${p.damage})`).join(' + ')}
+                                {comb.parts.map(p => `${p.count}x ${translatePartNames(p.name)} (${p.damage})`).join(' + ')}
                               </li>
                             ))}
                           </ul>
@@ -516,7 +521,7 @@ function App() {
                   {maxSTK > 0 && !combinations[maxSTK] && (
                     <div style={{ marginBottom: '1.5rem', backgroundColor: 'var(--card-bg)', padding: '1rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
                         <h3 style={{ color: 'var(--accent-color)', margin: '0 0 1rem 0' }}>
-                          {maxSTK}{t('table.shots_suffix')} Kill
+                          {t('prob.shots_kill', maxSTK)}
                           {parseFloat(fireInterval) > 0 && ` (TTK: ${parseFloat(((maxSTK - 1) * parseFloat(fireInterval)).toFixed(2))} ms)`}
                         </h3>
                         <p>{t('prob.consistent', maxSTK)}</p>
