@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { CharacterModel, bodyPartsList } from './components/CharacterModel';
 import type { PartId } from './components/CharacterModel';
 import { calculateKillProbabilities, calculateCombinations } from './utils/ttkMath';
@@ -153,8 +153,21 @@ function App() {
   // --- Locale State ---
   const [locale, setLocale] = useState<Locale>(() => {
     const saved = localStorage.getItem('locale') as Locale;
-    return (saved && translations[saved]) ? saved : 'vi';
+    return (saved && translations[saved]) ? saved : 'en';
   });
+
+  const [langOpen, setLangOpen] = useState(false);
+  const langRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (langRef.current && !langRef.current.contains(e.target as Node)) {
+        setLangOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     document.body.setAttribute('data-lang', locale);
@@ -162,7 +175,7 @@ function App() {
   }, [locale]);
 
   const t = (key: string, ...args: (string | number)[]) => {
-    const dict = translations[locale] || translations['vi'];
+    const dict = translations[locale] || translations['en'];
     let str = dict[key] || key;
     args.forEach((arg, i) => {
       str = str.replace(`{${i}}`, String(arg));
@@ -317,27 +330,74 @@ function App() {
       <header className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <h1>CODM STK RATIO</h1>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <select 
-            value={locale}
-            onChange={e => setLocale(e.target.value as Locale)}
-            style={{
-              background: 'transparent',
-              color: 'var(--text-color)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '4px',
-              padding: '0.4rem 0.5rem 0.4rem 2rem',
-              fontFamily: 'inherit',
-              cursor: 'pointer',
-              appearance: 'none',
-              backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'></circle><line x1='2' y1='12' x2='22' y2='12'></line><path d='M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z'></path></svg>")`,
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: '6px center'
-            }}
-          >
-            {Object.entries(languageNames).map(([code, name]) => (
-              <option key={code} value={code} style={{ color: '#000' }}>{name}</option>
-            ))}
-          </select>
+          <div ref={langRef} style={{ position: 'relative' }}>
+            <button 
+              onClick={() => setLangOpen(!langOpen)}
+              style={{
+                background: 'transparent',
+                color: 'var(--text-color)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '4px',
+                padding: '0.4rem 0.8rem',
+                fontFamily: 'inherit',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontSize: '1rem'
+              }}
+            >
+              <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'><circle cx='12' cy='12' r='10'></circle><line x1='2' y1='12' x2='22' y2='12'></line><path d='M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z'></path></svg>
+              {languageNames[locale]}
+            </button>
+            {langOpen && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                right: 0,
+                marginTop: '0.5rem',
+                background: 'var(--panel-bg)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '4px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                zIndex: 100,
+                minWidth: '150px',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden'
+              }}>
+                {Object.entries(languageNames).map(([code, name]) => {
+                  const flags: Record<string, string> = {
+                    en: 'gb', vi: 'vn', th: 'th', zh: 'cn', ja: 'jp', ko: 'kr'
+                  };
+                  return (
+                    <button
+                      key={code}
+                      onClick={() => { setLocale(code as Locale); setLangOpen(false); }}
+                      style={{
+                        background: code === locale ? 'var(--card-bg)' : 'transparent',
+                        color: 'var(--text-color)',
+                        border: 'none',
+                        padding: '0.6rem 1rem',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                        fontSize: '1rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.8rem'
+                      }}
+                      onMouseOver={e => e.currentTarget.style.background = 'var(--card-bg)'}
+                      onMouseOut={e => e.currentTarget.style.background = code === locale ? 'var(--card-bg)' : 'transparent'}
+                    >
+                      <img src={`https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/4.1.4/flags/4x3/${flags[code]}.svg`} alt={code} style={{ width: '20px', height: '15px', objectFit: 'cover', borderRadius: '2px' }} />
+                      {name}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           <button className="theme-toggle" onClick={toggleTheme} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             {theme === 'dark' ? (
