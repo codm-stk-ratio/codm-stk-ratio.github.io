@@ -29,6 +29,89 @@ const FIXED_PROBABILITIES: Record<string, Record<PartId, number>> = {
   }
 };
 
+const t = (key: string) => {
+  const dict: Record<string, string> = {
+    'alert.duplicate_damage': 'Lỗi: Một cấu hình với các chỉ số sát thương y hệt đã được lưu trước đó!',
+    'alert.duplicate_name': 'Lỗi: Tên cấu hình này đã tồn tại!',
+    'prompt.rename_build': 'Nhập tên mới cho cấu hình này:',
+    'btn.ok': 'OK',
+    'btn.cancel': 'Hủy',
+    'title.alert': 'Thông báo',
+    'title.prompt': 'Nhập liệu'
+  };
+  return dict[key] || key;
+};
+
+type DialogConfig = {
+  isOpen: boolean;
+  type: 'alert' | 'prompt';
+  message: string;
+  defaultValue?: string;
+  onConfirm?: (value?: string) => void;
+  onCancel?: () => void;
+};
+
+const CustomDialog = ({ config, onClose }: { config: DialogConfig, onClose: () => void }) => {
+  const [inputValue, setInputValue] = useState('');
+
+  useEffect(() => {
+    if (config.isOpen) {
+      setInputValue(config.defaultValue || '');
+    }
+  }, [config.isOpen, config.defaultValue]);
+
+  if (!config.isOpen) return null;
+
+  const handleConfirm = () => {
+    if (config.onConfirm) {
+      config.onConfirm(config.type === 'prompt' ? inputValue : undefined);
+    }
+    onClose();
+  };
+
+  const handleCancel = () => {
+    if (config.onCancel) config.onCancel();
+    onClose();
+  };
+
+  return (
+    <div className="modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) handleCancel(); }}>
+      <div className="modal-content" style={{ maxWidth: '400px', padding: '1.5rem', textAlign: 'center' }}>
+        <div className="modal-header" style={{ marginBottom: '1rem', borderBottom: 'none', paddingBottom: 0, justifyContent: 'center' }}>
+          <h2 style={{ fontSize: '1.4rem' }}>{config.type === 'alert' ? t('title.alert') : t('title.prompt')}</h2>
+        </div>
+        <p style={{ fontSize: '1.1rem', marginBottom: '1.5rem', wordBreak: 'break-word', marginTop: 0 }}>{config.message}</p>
+        
+        {config.type === 'prompt' && (
+          <input 
+            type="text" 
+            value={inputValue} 
+            onChange={e => setInputValue(e.target.value)}
+            autoFocus
+            style={{ 
+              width: 'calc(100% - 1.2rem)', padding: '0.6rem', marginBottom: '1.5rem',
+              background: 'var(--input-bg)', color: 'var(--text-color)', 
+              border: '1px solid var(--border-color)', borderRadius: '4px',
+              fontFamily: 'inherit', fontSize: '1.1rem' 
+            }}
+          />
+        )}
+
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+          {config.type === 'prompt' && (
+            <button className="btn" onClick={handleCancel} style={{ backgroundColor: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-color)' }}>
+              {t('btn.cancel')}
+            </button>
+          )}
+          <button className="btn" onClick={handleConfirm} style={{ minWidth: '80px' }}>
+            {t('btn.ok')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 function App() {
   const [health, setHealth] = useState<number>(() => {
     const saved = localStorage.getItem('currentHealth');
@@ -91,6 +174,8 @@ function App() {
     localStorage.setItem('savedBuilds', JSON.stringify(savedBuilds));
   }, [savedBuilds]);
 
+  const [dialogConfig, setDialogConfig] = useState<DialogConfig>({ isOpen: false, type: 'alert', message: '' });
+
   const handleSaveDamages = () => {
     // 1. Check if damage configuration is identical to an existing build
     const isDuplicateDamage = savedBuilds.some(build => {
@@ -100,7 +185,7 @@ function App() {
     });
 
     if (isDuplicateDamage) {
-      window.alert('Lỗi: Một cấu hình với các chỉ số sát thương y hệt đã được lưu trước đó!');
+      setDialogConfig({ isOpen: true, type: 'alert', message: t('alert.duplicate_damage') });
       return;
     }
 
@@ -114,7 +199,7 @@ function App() {
     
     const isDuplicateName = savedBuilds.some(b => b.name.toLowerCase() === name.toLowerCase());
     if (isDuplicateName) {
-      window.alert('Lỗi: Tên cấu hình này đã tồn tại!');
+      setDialogConfig({ isOpen: true, type: 'alert', message: t('alert.duplicate_name') });
       return;
     }
     
@@ -139,19 +224,25 @@ function App() {
     const build = savedBuilds.find(b => b.id === id);
     if (!build) return;
     
-    let newName = window.prompt('Nhập tên mới cho cấu hình này:', build.name);
-    if (newName === null) return;
-    
-    newName = newName.trim();
-    if (!newName || newName === build.name) return;
-    
-    const isDuplicateName = savedBuilds.some(b => b.id !== id && b.name.toLowerCase() === newName!.toLowerCase());
-    if (isDuplicateName) {
-      window.alert('Lỗi: Tên cấu hình này đã tồn tại!');
-      return;
-    }
+    setDialogConfig({
+      isOpen: true,
+      type: 'prompt',
+      message: t('prompt.rename_build'),
+      defaultValue: build.name,
+      onConfirm: (newNameRaw) => {
+        if (!newNameRaw) return;
+        const newName = newNameRaw.trim();
+        if (!newName || newName === build.name) return;
+        
+        const isDuplicateName = savedBuilds.some(b => b.id !== id && b.name.toLowerCase() === newName.toLowerCase());
+        if (isDuplicateName) {
+          setTimeout(() => setDialogConfig({ isOpen: true, type: 'alert', message: t('alert.duplicate_name') }), 100);
+          return;
+        }
 
-    setSavedBuilds(prev => prev.map(b => b.id === id ? { ...b, name: newName! } : b));
+        setSavedBuilds(prev => prev.map(b => b.id === id ? { ...b, name: newName } : b));
+      }
+    });
   };
 
   const handleLoadBuild = (buildDamages: Record<PartId, string>, buildFireInterval?: string) => {
@@ -487,6 +578,11 @@ function App() {
           </div>
         </div>
       )}
+
+      <CustomDialog 
+        config={dialogConfig} 
+        onClose={() => setDialogConfig(prev => ({ ...prev, isOpen: false }))} 
+      />
     </div>
   );
 }
