@@ -16,38 +16,38 @@ export const partConfigs: Record<PartId, any> = {
   head: {
     color: '#FF0000',
     inputBox: { right: '102%', top: '10%' },
-    lineStart: { x: '0%', y: '10%' }, 
+    lineStart: { x: '-2%', y: '10%' }, 
     target: { x: '50%', y: '13.13%' }
   },
   chest: {
     color: '#FF6A00',
     inputBox: { right: '102%', top: '45%' },
-    lineStart: { x: '0%', y: '45%' },
+    lineStart: { x: '-2%', y: '45%' },
     target: { x: '49.86%', y: '40.14%' }
   },
   stomach: {
     color: '#FFD800',
     inputBox: { right: '102%', top: '80%' },
-    lineStart: { x: '0%', y: '80%' },
+    lineStart: { x: '-2%', y: '80%' },
     target: { x: '49.78%', y: '64.94%' }
   },
   upper_arm: {
     color: '#4CFF00',
     inputBox: { left: '102%', top: '20%' },
-    lineStart: { x: '100%', y: '20%' },
-    target: { x: '74%', y: '43.52%' } // Target right upper arm
+    lineStart: { x: '102%', y: '20%' },
+    target: { x: '74%', y: '43.52%' }
   },
   lower_arm: {
     color: '#0094FF',
     inputBox: { left: '102%', top: '50%' },
-    lineStart: { x: '100%', y: '50%' },
-    target: { x: '79%', y: '73.47%' } // Target right lower arm
+    lineStart: { x: '102%', y: '50%' },
+    target: { x: '79%', y: '73.47%' }
   },
   leg: {
     color: '#B200FF',
     inputBox: { left: '102%', top: '80%' },
-    lineStart: { x: '100%', y: '80%' },
-    target: { x: '58%', y: '85.74%' } // Target right leg
+    lineStart: { x: '102%', y: '80%' },
+    target: { x: '58%', y: '85.74%' }
   }
 };
 
