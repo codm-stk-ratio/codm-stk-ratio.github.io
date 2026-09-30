@@ -368,7 +368,8 @@ function App() {
               }}>
                 {Object.entries(languageNames).map(([code, name]) => {
                   const flags: Record<string, string> = {
-                    en: 'gb', vi: 'vn', th: 'th', zh: 'cn', ja: 'jp', ko: 'kr'
+                    en: 'gb', vi: 'vn', th: 'th', zh: 'cn', ja: 'jp', ko: 'kr',
+                    es: 'es', pt: 'pt', ms: 'my', id: 'id', hi: 'in'
                   };
                   return (
                     <button

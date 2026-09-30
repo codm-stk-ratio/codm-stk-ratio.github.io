@@ -68,6 +68,10 @@ body[data-lang="zh"], body[data-lang="ja"], body[data-lang="ko"] {
   font-family: 'Noto Sans CJK SC', 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Malgun Gothic', 'Meiryo', sans-serif;
 }
 
+body[data-lang="hi"] {
+  font-family: 'Noto Sans Devanagari', 'Mukta', 'Hind', sans-serif;
+}
+
 * { box-sizing: border-box; }
 
 .app-container {
