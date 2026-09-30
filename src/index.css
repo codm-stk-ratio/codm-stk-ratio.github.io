@@ -328,11 +328,11 @@ input[type="number"] {
   width: 75%; /* 75% of 38% wrapper = 28.5% of outer. Perfectly fits in 31% margin */
   min-width: 60px;
   max-width: 130px;
-  aspect-ratio: 2.3 / 1;
+  height: clamp(55px, 6vw, 70px);
   background: var(--input-bg);
   border: 2px solid var(--input-border);
   border-radius: 6px;
-  padding: 0;
+  padding: 0.3rem 0;
   z-index: 10;
   transition: all 0.3s;
   cursor: pointer;
@@ -340,6 +340,7 @@ input[type="number"] {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: 0.2rem;
   transform: translateY(-50%); /* Centered vertically against top % */
 }
 
@@ -349,14 +350,17 @@ input[type="number"] {
 }
 
 .part-label {
-  font-size: clamp(0.7rem, 2.5vw, 1.1rem);
+  font-size: clamp(0.6rem, 2vw, 1rem);
   font-weight: bold;
   text-transform: uppercase;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0;
   text-align: center;
   text-shadow: none;
-  white-space: normal;
-  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 95%;
+  line-height: 1;
 }
 
 .floating-input-box input {
@@ -366,9 +370,12 @@ input[type="number"] {
   border-bottom: 1px solid var(--border-color);
   color: var(--text-color);
   font-family: inherit;
-  font-size: clamp(1.2rem, 3.5vw, 1.6rem);
+  font-size: clamp(1.1rem, 3vw, 1.4rem);
   text-align: center;
   outline: none;
+  padding: 0;
+  margin: 0;
+  line-height: 1.2;
 }
 
 .floating-input-box input:focus {
