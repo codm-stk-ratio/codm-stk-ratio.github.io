@@ -443,3 +443,32 @@ input[type="number"] {
     margin-bottom: 1.5rem;
   }
 }
+
+.footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  padding: 2rem 1rem;
+  margin-top: 2rem;
+  border-top: 1px solid var(--border-color);
+  flex-wrap: wrap;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-color);
+  opacity: 0.8;
+  font-family: 'Noto Sans', sans-serif; /* fallback for good @ and _ rendering */
+}
+
+.contact-item svg {
+  opacity: 0.7;
+}
+
+.contact-text {
+  font-size: 1rem;
+  font-weight: 500;
+}
