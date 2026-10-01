@@ -119,7 +119,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     'title.shot_combinations': 'Tổ hợp vị trí bắn trúng',
     'subtitle.shot_combinations': 'Tổ hợp bộ phận bắn trúng để đạt được STK tối thiểu',
     'prob.shots_kill': 'Hạ gục với {0} phát bắn',
-    'part.any_part': 'Bất kỳ phần nào'
+    'part.any_part': 'Bộ phận bất kì'
   },
   th: {
     'alert.duplicate_damage': 'ข้อผิดพลาด: มีการตั้งค่าความเสียหายนี้อยู่แล้ว!',
