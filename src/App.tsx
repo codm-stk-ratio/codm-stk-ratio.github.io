@@ -431,11 +431,16 @@ function App() {
           <div className="panel" style={{ marginBottom: '2rem' }}>
             <div className="input-group">
               <label>{t('app.game_mode')}</label>
-              <select value={mode} onChange={handleModeChange}>
-                {GAME_MODES.map(m => (
-                  <option key={m.id} value={m.id}>{t(m.name)}</option>
-                ))}
-              </select>
+              <div className="custom-select-wrapper">
+                <select value={mode} onChange={handleModeChange} className="custom-select">
+                  {GAME_MODES.map(m => (
+                    <option key={m.id} value={m.id}>{t(m.name)}</option>
+                  ))}
+                </select>
+                <svg className="select-arrow-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
             </div>
             
             <div className="input-group">

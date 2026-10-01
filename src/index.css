@@ -149,6 +149,28 @@ body[data-lang="hi"] {
   outline: none;
 }
 
+.custom-select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.custom-select {
+  width: 100%;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding-right: 2.5rem !important;
+}
+
+.select-arrow-icon {
+  position: absolute;
+  right: 1rem;
+  pointer-events: none;
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
 .input-group input:focus, .input-group select:focus {
   border-color: var(--accent-color);
 }
