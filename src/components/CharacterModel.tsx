@@ -85,14 +85,14 @@ export const CharacterModel: React.FC<CharacterModelProps> = ({
                   stroke={config.color} 
                   strokeWidth={isActive ? 4 : 2}
                   className="connection-line"
-                  opacity={isActive ? 1 : 0.6}
+                  opacity={1}
                 />
                 <circle 
                   cx={config.target.x} 
                   cy={config.target.y} 
                   r={isActive ? 6 : 4} 
                   fill={config.color} 
-                  opacity={isActive ? 1 : 0.6}
+                  opacity={1}
                 />
               </g>
             );
