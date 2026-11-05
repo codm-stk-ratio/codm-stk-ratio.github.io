@@ -456,13 +456,27 @@ function App() {
 
             <div className="input-group">
               <label>{t('app.fire_interval')}</label>
-              <input 
-                type="number" 
-                value={fireInterval} 
-                onChange={(e) => setFireInterval(e.target.value)}
-                placeholder="e.g. 100"
-                min="0"
-              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <input 
+                  type="number" 
+                  value={fireInterval} 
+                  onChange={(e) => setFireInterval(e.target.value)}
+                  placeholder="e.g. 100"
+                  min="0"
+                  style={{ flex: 1, minWidth: 0 }}
+                />
+                <span style={{
+                  minWidth: '90px',
+                  textAlign: 'right',
+                  fontSize: '1.3rem',
+                  fontWeight: 'bold',
+                  color: parseFloat(fireInterval) > 0 ? 'var(--accent-color)' : 'var(--text-color)',
+                  opacity: parseFloat(fireInterval) > 0 ? 1 : 0.5,
+                  whiteSpace: 'nowrap'
+                }}>
+                  {parseFloat(fireInterval) > 0 ? `${Math.round(60000 / parseFloat(fireInterval))} RPM` : '-- RPM'}
+                </span>
+              </div>
             </div>
           </div>
 
