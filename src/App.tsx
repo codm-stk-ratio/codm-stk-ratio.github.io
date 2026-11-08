@@ -100,6 +100,18 @@ const CustomDialog = ({ config, onClose, t }: { config: DialogConfig, onClose: (
   );
 };
 
+type FireMode = 'auto' | 'burst';
+
+type SavedBuild = {
+  id: number;
+  name: string;
+  damages: Record<PartId, string>;
+  fireMode?: FireMode;
+  fireInterval?: string;
+  burstDelay?: string;
+  burstCount?: string;
+};
+
 function App() {
   const [health, setHealth] = useState<number>(() => {
     const saved = localStorage.getItem('currentHealth');
@@ -108,8 +120,17 @@ function App() {
   const [mode, setMode] = useState<string>(() => {
     return localStorage.getItem('currentMode') || 'mp';
   });
+  const [fireMode, setFireMode] = useState<FireMode>(() => {
+    return localStorage.getItem('currentFireMode') === 'burst' ? 'burst' : 'auto';
+  });
   const [fireInterval, setFireInterval] = useState<string>(() => {
     return localStorage.getItem('currentFireInterval') || '';
+  });
+  const [burstDelay, setBurstDelay] = useState<string>(() => {
+    return localStorage.getItem('currentBurstDelay') || '';
+  });
+  const [burstCount, setBurstCount] = useState<string>(() => {
+    return localStorage.getItem('currentBurstCount') || '';
   });
   
   const [damages, setDamages] = useState<Record<PartId, string>>(() => {
@@ -130,9 +151,12 @@ function App() {
   useEffect(() => {
     localStorage.setItem('currentHealth', health.toString());
     localStorage.setItem('currentMode', mode);
+    localStorage.setItem('currentFireMode', fireMode);
     localStorage.setItem('currentFireInterval', fireInterval);
+    localStorage.setItem('currentBurstDelay', burstDelay);
+    localStorage.setItem('currentBurstCount', burstCount);
     localStorage.setItem('currentDamages', JSON.stringify(damages));
-  }, [health, mode, damages, fireInterval]);
+  }, [health, mode, fireMode, fireInterval, burstDelay, burstCount, damages]);
 
   const [activePart, setActivePart] = useState<PartId | null>(null);
 
@@ -184,7 +208,7 @@ function App() {
   };
 
   // --- NEW: Saved Builds State ---
-  const [savedBuilds, setSavedBuilds] = useState<{id: number, name: string, damages: Record<PartId, string>, fireInterval?: string}[]>(() => {
+  const [savedBuilds, setSavedBuilds] = useState<SavedBuild[]>(() => {
     const saved = localStorage.getItem('savedBuilds');
     return saved ? JSON.parse(saved) : [];
   });
@@ -200,9 +224,17 @@ function App() {
   const handleSaveDamages = () => {
     // 1. Check if damage configuration is identical to an existing build
     const isDuplicateDamage = savedBuilds.some(build => {
-      return (Object.keys(damages) as PartId[]).every(key => 
+      const buildFireMode = build.fireMode || 'auto';
+      const sameDamages = (Object.keys(damages) as PartId[]).every(key => 
         build.damages[key] === damages[key]
-      ) && build.fireInterval === fireInterval;
+      );
+      if (!sameDamages || buildFireMode !== fireMode || (build.fireInterval || '') !== fireInterval) {
+        return false;
+      }
+      if (fireMode === 'burst') {
+        return (build.burstDelay || '') === burstDelay && (build.burstCount || '') === burstCount;
+      }
+      return true;
     });
 
     if (isDuplicateDamage) {
@@ -230,14 +262,24 @@ function App() {
         id: Date.now(),
         name,
         damages: { ...damages },
-        fireInterval
+        fireMode,
+        fireInterval,
+        burstDelay: fireMode === 'burst' ? burstDelay : '',
+        burstCount: fireMode === 'burst' ? burstCount : ''
       }
     ]);
     setModalState('none');
   };
 
   const handleOverwrite = (id: number) => {
-    setSavedBuilds(prev => prev.map(b => b.id === id ? { ...b, damages: { ...damages }, fireInterval } : b));
+    setSavedBuilds(prev => prev.map(b => b.id === id ? {
+      ...b,
+      damages: { ...damages },
+      fireMode,
+      fireInterval,
+      burstDelay: fireMode === 'burst' ? burstDelay : '',
+      burstCount: fireMode === 'burst' ? burstCount : ''
+    } : b));
     setModalState('none');
   };
 
@@ -266,9 +308,12 @@ function App() {
     });
   };
 
-  const handleLoadBuild = (buildDamages: Record<PartId, string>, buildFireInterval?: string) => {
-    setDamages(buildDamages);
-    setFireInterval(buildFireInterval || '');
+  const handleLoadBuild = (build: SavedBuild) => {
+    setDamages(build.damages);
+    setFireMode(build.fireMode || 'auto');
+    setFireInterval(build.fireInterval || '');
+    setBurstDelay(build.burstDelay || '');
+    setBurstCount(build.burstCount || '');
     setModalState('none');
   };
 
@@ -280,6 +325,8 @@ function App() {
   const handleClearDamages = () => {
     setDamages({ head: '', chest: '', stomach: '', upper_arm: '', lower_arm: '', leg: '' });
     setFireInterval('');
+    setBurstDelay('');
+    setBurstCount('');
   };
 
   const handleModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -324,6 +371,30 @@ function App() {
 
     return { probResults: probs, combinations: combs, maxSTK: max, isReady: true };
   }, [health, damages, mode]);
+
+  const fiNum = parseFloat(fireInterval);
+  const bdNum = parseFloat(burstDelay);
+  const bcNum = parseInt(burstCount, 10);
+
+  const hasValidTiming = fireMode === 'auto'
+    ? (!isNaN(fiNum) && fiNum > 0)
+    : (!isNaN(fiNum) && fiNum > 0 && burstDelay.trim() !== '' && !isNaN(bdNum) && bdNum >= 0 && !isNaN(bcNum) && bcNum >= 2);
+
+  const getShotsTTK = (shots: number): number => {
+    if (shots <= 1) return 0;
+    if (fireMode === 'auto') {
+      return (shots - 1) * fiNum;
+    }
+    const numDelays = Math.floor((shots - 1) / bcNum);
+    const numIntra = (shots - 1) - numDelays;
+    return numIntra * fiNum + numDelays * bdNum;
+  };
+
+  const formatTTK = (val: number) => parseFloat(val.toFixed(2));
+
+  const effectiveBurstRPM = (fireMode === 'burst' && hasValidTiming)
+    ? Math.round((60000 * bcNum) / ((bcNum - 1) * fiNum + bdNum))
+    : null;
 
   return (
     <div className="app-container">
@@ -455,13 +526,33 @@ function App() {
             </div>
 
             <div className="input-group">
-              <label>{t('app.fire_interval')}</label>
+              <label>{t('app.fire_mode')}</label>
+              <div className="fire-mode-toggle">
+                <button
+                  type="button"
+                  className={`fire-mode-btn ${fireMode === 'auto' ? 'active' : ''}`}
+                  onClick={() => setFireMode('auto')}
+                >
+                  {t('mode.full_auto')}
+                </button>
+                <button
+                  type="button"
+                  className={`fire-mode-btn ${fireMode === 'burst' ? 'active' : ''}`}
+                  onClick={() => setFireMode('burst')}
+                >
+                  {t('mode.burst')}
+                </button>
+              </div>
+            </div>
+
+            <div className="input-group" style={{ marginBottom: fireMode === 'burst' ? '1rem' : 0 }}>
+              <label>{fireMode === 'burst' ? t('app.burst_fire_interval') : t('app.fire_interval')}</label>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <input 
                   type="number" 
                   value={fireInterval} 
                   onChange={(e) => setFireInterval(e.target.value)}
-                  placeholder="e.g. 100"
+                  placeholder={fireMode === 'burst' ? 'e.g. 50' : 'e.g. 100'}
                   min="0"
                   style={{ flex: 1, minWidth: 0 }}
                 />
@@ -470,14 +561,60 @@ function App() {
                   textAlign: 'right',
                   fontSize: '1.3rem',
                   fontWeight: 'bold',
-                  color: parseFloat(fireInterval) > 0 ? 'var(--accent-color)' : 'var(--text-color)',
-                  opacity: parseFloat(fireInterval) > 0 ? 1 : 0.5,
+                  color: fiNum > 0 ? 'var(--accent-color)' : 'var(--text-color)',
+                  opacity: fiNum > 0 ? 1 : 0.5,
                   whiteSpace: 'nowrap'
                 }}>
-                  {parseFloat(fireInterval) > 0 ? `${Math.round(60000 / parseFloat(fireInterval))} RPM` : '-- RPM'}
+                  {fiNum > 0 ? `${Math.round(60000 / fiNum)} RPM` : '-- RPM'}
                 </span>
               </div>
             </div>
+
+            {fireMode === 'burst' && (
+              <>
+                <div className="input-group">
+                  <label>{t('app.burst_delay')}</label>
+                  <input 
+                    type="number" 
+                    value={burstDelay} 
+                    onChange={(e) => setBurstDelay(e.target.value)}
+                    placeholder="e.g. 200"
+                    min="0"
+                  />
+                </div>
+
+                <div className="input-group" style={{ marginBottom: 0 }}>
+                  <label>{t('app.burst_count')}</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <input 
+                      type="number" 
+                      value={burstCount} 
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === '' || /^\d+$/.test(val)) {
+                          setBurstCount(val);
+                        }
+                      }}
+                      placeholder="e.g. 3"
+                      min="2"
+                      step="1"
+                      style={{ flex: 1, minWidth: 0 }}
+                    />
+                    <span style={{
+                      minWidth: '110px',
+                      textAlign: 'right',
+                      fontSize: '1.3rem',
+                      fontWeight: 'bold',
+                      color: effectiveBurstRPM !== null ? 'var(--accent-color)' : 'var(--text-color)',
+                      opacity: effectiveBurstRPM !== null ? 1 : 0.5,
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {effectiveBurstRPM !== null ? t('app.avg_rpm', effectiveBurstRPM) : t('app.avg_rpm', '--')}
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           <div className="panel" style={{ marginBottom: '2rem' }}>
@@ -510,25 +647,21 @@ function App() {
             {isReady && probResults.length > 0 ? (
               <>
                 {(() => {
-                  const fi = parseFloat(fireInterval) || 0;
                   let expectedTTK = 0;
-                  if (fi > 0) {
-                    let expectedShots = 0;
+                  if (hasValidTiming) {
+                    let weightedTTKSum = 0;
                     probResults.forEach(r => {
-                      expectedShots += (r.probability / 100) * r.shots;
+                      weightedTTKSum += (r.probability / 100) * getShotsTTK(r.shots);
                     });
                     const maxCumul = probResults[probResults.length - 1].cumulativeProbability / 100;
                     if (maxCumul > 0) {
-                      expectedShots = expectedShots / maxCumul;
+                      expectedTTK = weightedTTKSum / maxCumul;
                     }
-                    expectedTTK = (expectedShots - 1) * fi;
                   }
-
-                  const formatTTK = (val: number) => parseFloat(val.toFixed(2));
 
                   return (
                     <>
-                      {fi > 0 && expectedTTK > 0 && (
+                      {hasValidTiming && expectedTTK > 0 && (
                         <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: 'rgba(255, 152, 0, 0.1)', border: '1px solid var(--accent-color)', borderRadius: '4px' }}>
                           <span style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{t('avg.ttk')}</span>
                           <span style={{ color: 'var(--accent-color)', fontSize: '1.2rem', fontWeight: 'bold' }}>{formatTTK(expectedTTK)} ms</span>
@@ -539,7 +672,7 @@ function App() {
                         <thead>
                           <tr>
                             <th>{t('table.shots')}</th>
-                            {fi > 0 && <th>{t('table.ttk')}</th>}
+                            {hasValidTiming && <th>{t('table.ttk')}</th>}
                             <th>{t('table.exact')}</th>
                             <th>{t('table.cumulative')}</th>
                           </tr>
@@ -549,7 +682,7 @@ function App() {
                             r.probability > 0.01 && (
                               <tr key={r.shots}>
                                 <td>{r.shots}{t('table.shots_suffix')}</td>
-                                {fi > 0 && <td>{formatTTK((r.shots - 1) * fi)} ms</td>}
+                                {hasValidTiming && <td>{formatTTK(getShotsTTK(r.shots))} ms</td>}
                                 <td>{r.probability.toFixed(2)}%</td>
                                 <td>{r.cumulativeProbability.toFixed(2)}%</td>
                               </tr>
@@ -571,8 +704,6 @@ function App() {
                     const stk = parseInt(stkStr);
                     const combs = combinations[stk];
                     if (combs.length === 0) return null;
-                    const fi = parseFloat(fireInterval) || 0;
-                    const formatTTK = (val: number) => parseFloat(val.toFixed(2));
 
                     const translatePartNames = (name: string) => {
                       if (name === 'ANY_PART') return t('part.any_part');
@@ -583,7 +714,7 @@ function App() {
                       <div key={stk} style={{ marginBottom: '1.5rem', backgroundColor: 'var(--card-bg)', padding: '1rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
                         <h3 style={{ color: 'var(--accent-color)', margin: '0 0 1rem 0' }}>
                           {t('prob.shots_kill', stk)}
-                          {fi > 0 && ` (TTK: ${formatTTK((stk - 1) * fi)} ms)`}
+                          {hasValidTiming && ` (TTK: ${formatTTK(getShotsTTK(stk))} ms)`}
                         </h3>
                         {stk === maxSTK ? (
                           <p>{t('prob.consistent', stk)}</p>
@@ -603,7 +734,7 @@ function App() {
                     <div style={{ marginBottom: '1.5rem', backgroundColor: 'var(--card-bg)', padding: '1rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
                         <h3 style={{ color: 'var(--accent-color)', margin: '0 0 1rem 0' }}>
                           {t('prob.shots_kill', maxSTK)}
-                          {parseFloat(fireInterval) > 0 && ` (TTK: ${parseFloat(((maxSTK - 1) * parseFloat(fireInterval)).toFixed(2))} ms)`}
+                          {hasValidTiming && ` (TTK: ${formatTTK(getShotsTTK(maxSTK))} ms)`}
                         </h3>
                         <p>{t('prob.consistent', maxSTK)}</p>
                     </div>
@@ -679,7 +810,7 @@ function App() {
                     
                     {modalState === 'load' ? (
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button onClick={() => handleLoadBuild(build.damages, build.fireInterval)} className="btn" style={{ padding: '0.3rem 0.8rem' }}>{t('btn.load')}</button>
+                        <button onClick={() => handleLoadBuild(build)} className="btn" style={{ padding: '0.3rem 0.8rem' }}>{t('btn.load')}</button>
                         <button onClick={() => handleRenameBuild(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem' }}>{t('btn.rename')}</button>
                         <button onClick={() => handleDeleteBuild(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem', backgroundColor: '#d32f2f', borderColor: '#d32f2f', color: 'white' }}>{t('btn.delete')}</button>
                       </div>
