@@ -132,6 +132,11 @@ function App() {
   const [burstCount, setBurstCount] = useState<string>(() => {
     return localStorage.getItem('currentBurstCount') || '';
   });
+  const [missedShots, setMissedShots] = useState<number>(() => {
+    const saved = localStorage.getItem('currentMissedShots');
+    const parsed = saved ? parseInt(saved, 10) : 0;
+    return !isNaN(parsed) && parsed >= 0 ? parsed : 0;
+  });
   
   const [damages, setDamages] = useState<Record<PartId, string>>(() => {
     const saved = localStorage.getItem('currentDamages');
@@ -155,8 +160,9 @@ function App() {
     localStorage.setItem('currentFireInterval', fireInterval);
     localStorage.setItem('currentBurstDelay', burstDelay);
     localStorage.setItem('currentBurstCount', burstCount);
+    localStorage.setItem('currentMissedShots', missedShots.toString());
     localStorage.setItem('currentDamages', JSON.stringify(damages));
-  }, [health, mode, fireMode, fireInterval, burstDelay, burstCount, damages]);
+  }, [health, mode, fireMode, fireInterval, burstDelay, burstCount, missedShots, damages]);
 
   const [activePart, setActivePart] = useState<PartId | null>(null);
 
@@ -210,7 +216,17 @@ function App() {
   // --- NEW: Saved Builds State ---
   const [savedBuilds, setSavedBuilds] = useState<SavedBuild[]>(() => {
     const saved = localStorage.getItem('savedBuilds');
-    return saved ? JSON.parse(saved) : [];
+    if (!saved) return [];
+    try {
+      const parsed = JSON.parse(saved);
+      if (!Array.isArray(parsed)) return [];
+      return parsed.map((build: SavedBuild) => ({
+        ...build,
+        fireMode: build.fireMode === 'burst' ? 'burst' : 'auto',
+      }));
+    } catch {
+      return [];
+    }
   });
   const [modalState, setModalState] = useState<'none' | 'load' | 'save'>('none');
   const [newBuildName, setNewBuildName] = useState<string>('');
@@ -310,7 +326,7 @@ function App() {
 
   const handleLoadBuild = (build: SavedBuild) => {
     setDamages(build.damages);
-    setFireMode(build.fireMode || 'auto');
+    setFireMode(build.fireMode === 'burst' ? 'burst' : 'auto');
     setFireInterval(build.fireInterval || '');
     setBurstDelay(build.burstDelay || '');
     setBurstCount(build.burstCount || '');
@@ -545,7 +561,7 @@ function App() {
               </div>
             </div>
 
-            <div className="input-group" style={{ marginBottom: fireMode === 'burst' ? '1rem' : 0 }}>
+            <div className="input-group">
               <label>{fireMode === 'burst' ? t('app.burst_fire_interval') : t('app.fire_interval')}</label>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <input 
@@ -583,7 +599,7 @@ function App() {
                   />
                 </div>
 
-                <div className="input-group" style={{ marginBottom: 0 }}>
+                <div className="input-group">
                   <label>{t('app.burst_count')}</label>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <input 
@@ -615,6 +631,45 @@ function App() {
                 </div>
               </>
             )}
+
+            <div className="input-group" style={{ marginBottom: 0 }}>
+              <label>{t('app.missed_shots')}</label>
+              <div className="counter-control">
+                <button
+                  type="button"
+                  className="counter-btn"
+                  onClick={() => setMissedShots(prev => Math.max(0, prev - 1))}
+                  disabled={missedShots <= 0}
+                  aria-label="Decrease missed shots"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                </button>
+                <input
+                  type="number"
+                  className={`counter-input ${missedShots > 0 ? 'has-missed' : ''}`}
+                  value={missedShots}
+                  onChange={(e) => {
+                    const parsed = parseInt(e.target.value, 10);
+                    setMissedShots(!isNaN(parsed) && parsed >= 0 ? parsed : 0);
+                  }}
+                  min="0"
+                  step="1"
+                />
+                <button
+                  type="button"
+                  className="counter-btn"
+                  onClick={() => setMissedShots(prev => prev + 1)}
+                  aria-label="Increase missed shots"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="panel" style={{ marginBottom: '2rem' }}>
@@ -651,7 +706,7 @@ function App() {
                   if (hasValidTiming) {
                     let weightedTTKSum = 0;
                     probResults.forEach(r => {
-                      weightedTTKSum += (r.probability / 100) * getShotsTTK(r.shots);
+                      weightedTTKSum += (r.probability / 100) * getShotsTTK(r.shots + missedShots);
                     });
                     const maxCumul = probResults[probResults.length - 1].cumulativeProbability / 100;
                     if (maxCumul > 0) {
@@ -678,16 +733,17 @@ function App() {
                           </tr>
                         </thead>
                         <tbody>
-                          {probResults.map(r => (
-                            r.probability > 0.01 && (
+                          {probResults.map(r => {
+                            const totalShots = r.shots + missedShots;
+                            return r.probability > 0.01 && (
                               <tr key={r.shots}>
-                                <td>{r.shots}{t('table.shots_suffix')}</td>
-                                {hasValidTiming && <td>{formatTTK(getShotsTTK(r.shots))} ms</td>}
+                                <td>{totalShots}{t('table.shots_suffix')}</td>
+                                {hasValidTiming && <td>{formatTTK(getShotsTTK(totalShots))} ms</td>}
                                 <td>{r.probability.toFixed(2)}%</td>
                                 <td>{r.cumulativeProbability.toFixed(2)}%</td>
                               </tr>
-                            )
-                          ))}
+                            );
+                          })}
                         </tbody>
                       </table>
                     </>
@@ -702,6 +758,7 @@ function App() {
                   
                   {Object.keys(combinations).map(stkStr => {
                     const stk = parseInt(stkStr);
+                    const totalStk = stk + missedShots;
                     const combs = combinations[stk];
                     if (combs.length === 0) return null;
 
@@ -713,16 +770,17 @@ function App() {
                     return (
                       <div key={stk} style={{ marginBottom: '1.5rem', backgroundColor: 'var(--card-bg)', padding: '1rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
                         <h3 style={{ color: 'var(--accent-color)', margin: '0 0 1rem 0' }}>
-                          {t('prob.shots_kill', stk)}
-                          {hasValidTiming && ` (TTK: ${formatTTK(getShotsTTK(stk))} ms)`}
+                          {t('prob.shots_kill', totalStk)}
+                          {hasValidTiming && ` (TTK: ${formatTTK(getShotsTTK(totalStk))} ms)`}
                         </h3>
                         {stk === maxSTK ? (
-                          <p>{t('prob.consistent', stk)}</p>
+                          <p>{t('prob.consistent', totalStk)}</p>
                         ) : (
                           <ul style={{ margin: 0, paddingLeft: '1.2rem', lineHeight: '1.6' }}>
                             {combs.map((comb, idx) => (
                               <li key={idx}>
                                 {comb.parts.map(p => `${p.count}x ${translatePartNames(p.name)} (${p.damage})`).join(' + ')}
+                                {missedShots > 0 && ` + ${missedShots}x ${t('part.miss')} (0)`}
                               </li>
                             ))}
                           </ul>
@@ -733,10 +791,10 @@ function App() {
                   {maxSTK > 0 && !combinations[maxSTK] && (
                     <div style={{ marginBottom: '1.5rem', backgroundColor: 'var(--card-bg)', padding: '1rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
                         <h3 style={{ color: 'var(--accent-color)', margin: '0 0 1rem 0' }}>
-                          {t('prob.shots_kill', maxSTK)}
-                          {hasValidTiming && ` (TTK: ${formatTTK(getShotsTTK(maxSTK))} ms)`}
+                          {t('prob.shots_kill', maxSTK + missedShots)}
+                          {hasValidTiming && ` (TTK: ${formatTTK(getShotsTTK(maxSTK + missedShots))} ms)`}
                         </h3>
-                        <p>{t('prob.consistent', maxSTK)}</p>
+                        <p>{t('prob.consistent', maxSTK + missedShots)}</p>
                     </div>
                   )}
                 </div>

@@ -221,6 +221,51 @@ body[data-lang="hi"] {
   opacity: 1;
 }
 
+.counter-control {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.counter-btn {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  width: 48px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.counter-btn:hover:not(:disabled) {
+  border-color: var(--accent-color);
+  background-color: var(--accent-color);
+  color: #ffffff;
+}
+
+.counter-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.input-group input.counter-input {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-weight: 700;
+}
+
+.input-group input.counter-input.has-missed {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
 /* Hide arrows in number inputs */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {

@@ -64,6 +64,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     'app.burst_delay': 'Burst Delay (ms)',
     'app.burst_count': 'Shots per Burst',
     'app.avg_rpm': 'Avg: {0} RPM',
+    'app.missed_shots': 'Missed Shots',
     'avg.ttk': 'Average Time-To-Kill: ',
     'table.shots': 'Shots (STK)',
     'table.ttk': 'TTK (ms)',
@@ -73,7 +74,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     'title.shot_combinations': 'Shot Combinations',
     'subtitle.shot_combinations': 'Minimum body part combinations required to kill.',
     'prob.shots_kill': '{0} Shots Kill',
-    'part.any_part': 'Any Part'
+    'part.any_part': 'Any Part',
+    'part.miss': 'Miss'
   },
   vi: {
     'alert.duplicate_damage': 'Lỗi: Một cấu hình với các chỉ số sát thương y hệt đã được lưu trước đó!',
@@ -124,6 +126,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     'app.burst_delay': 'Độ trễ giữa các loạt burst (ms)',
     'app.burst_count': 'Số viên mỗi loạt burst',
     'app.avg_rpm': 'TB: {0} RPM',
+    'app.missed_shots': 'Số lần bắn hụt',
     'avg.ttk': 'Thời gian hạ gục (TTK) trung bình: ',
     'table.shots': 'Số viên (STK)',
     'table.ttk': 'TTK (ms)',
@@ -133,7 +136,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     'title.shot_combinations': 'Tổ hợp vị trí bắn trúng',
     'subtitle.shot_combinations': 'Tổ hợp bộ phận bắn trúng để đạt được STK tối thiểu',
     'prob.shots_kill': 'Hạ gục với {0} phát bắn',
-    'part.any_part': 'Bộ phận bất kì'
+    'part.any_part': 'Bộ phận bất kì',
+    'part.miss': 'Bắn hụt'
   },
   th: {
     'alert.duplicate_damage': 'ข้อผิดพลาด: มีการตั้งค่าความเสียหายนี้อยู่แล้ว!',
@@ -184,6 +188,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     'app.burst_delay': 'ดีเลย์ระหว่างชุดเบิร์สต์ (ms)',
     'app.burst_count': 'จำนวนนัดต่อชุดเบิร์สต์',
     'app.avg_rpm': 'เฉลี่ย: {0} RPM',
+    'app.missed_shots': 'จำนวนนัดที่ยิงพลาด',
     'avg.ttk': 'เวลาฆ่าเฉลี่ย (TTK): ',
     'table.shots': 'จำนวนนัด (STK)',
     'table.ttk': 'TTK (ms)',
@@ -193,7 +198,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     'title.shot_combinations': 'รูปแบบการยิงที่โดน',
     'subtitle.shot_combinations': 'รูปแบบส่วนของร่างกายที่จำเป็นในการฆ่า',
     'prob.shots_kill': 'ฆ่าด้วย {0} นัด',
-    'part.any_part': 'ส่วนใดก็ได้'
+    'part.any_part': 'ส่วนใดก็ได้',
+    'part.miss': 'ยิงพลาด'
   },
   zh: {
     'alert.duplicate_damage': '错误：已存在具有相同伤害配置的方案！',
@@ -244,6 +250,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     'app.burst_delay': '连发间隔延迟 (ms)',
     'app.burst_count': '每次连发枪数',
     'app.avg_rpm': '平均: {0} RPM',
+    'app.missed_shots': '空枪次数',
     'avg.ttk': '平均击杀时间: ',
     'table.shots': '枪数 (STK)',
     'table.ttk': 'TTK (ms)',
@@ -253,7 +260,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     'title.shot_combinations': '命中组合',
     'subtitle.shot_combinations': '击杀所需的最少部位组合',
     'prob.shots_kill': '{0} 枪击杀',
-    'part.any_part': '任意部位'
+    'part.any_part': '任意部位',
+    'part.miss': '空枪'
   },
   ja: {
     'alert.duplicate_damage': 'エラー：同じダメージ設定のビルドが既に存在します！',
@@ -304,6 +312,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     'app.burst_delay': 'バーストディレイ (ms)',
     'app.burst_count': '1バーストの発数',
     'app.avg_rpm': '平均: {0} RPM',
+    'app.missed_shots': '外した弾数',
     'avg.ttk': '平均キルタイム: ',
     'table.shots': '発数 (STK)',
     'table.ttk': 'TTK (ms)',
@@ -313,7 +322,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     'title.shot_combinations': 'ヒット組み合わせ',
     'subtitle.shot_combinations': 'キルに必要な最小の部位組み合わせ',
     'prob.shots_kill': '{0} 発キル',
-    'part.any_part': '任意の部位'
+    'part.any_part': '任意の部位',
+    'part.miss': '外れ'
   },
   ko: {
     'alert.duplicate_damage': '오류: 동일한 데미지 설정이 이미 존재합니다!',
@@ -364,6 +374,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     'app.burst_delay': '점사 딜레이 (ms)',
     'app.burst_count': '점사당 발수',
     'app.avg_rpm': '평균: {0} RPM',
+    'app.missed_shots': '빗나간 발수',
     'avg.ttk': '평균 킬 타임: ',
     'table.shots': '발수 (STK)',
     'table.ttk': 'TTK (ms)',
@@ -373,7 +384,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     'title.shot_combinations': '피격 조합',
     'subtitle.shot_combinations': '킬에 필요한 최소 부위 조합',
     'prob.shots_kill': '{0}발 킬',
-    'part.any_part': '모든 부위'
+    'part.any_part': '모든 부위',
+    'part.miss': '빗나감'
   },
   es: {
     'alert.duplicate_damage': 'Error: ¡Ya existe una configuración con exactamente los mismos valores de daño!',
@@ -424,6 +436,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     'app.burst_delay': 'Retraso entre ráfagas (ms)',
     'app.burst_count': 'Tiros por ráfaga',
     'app.avg_rpm': 'Prom: {0} RPM',
+    'app.missed_shots': 'Tiros fallados',
     'avg.ttk': 'Tiempo de Baja Promedio (TTK): ',
     'table.shots': 'Tiros (STK)',
     'table.ttk': 'TTK (ms)',
@@ -433,7 +446,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     'title.shot_combinations': 'Combinaciones de Tiros',
     'subtitle.shot_combinations': 'Combinaciones mínimas de partes para matar.',
     'prob.shots_kill': 'Baja con {0} Tiros',
-    'part.any_part': 'Cualquier Parte'
+    'part.any_part': 'Cualquier Parte',
+    'part.miss': 'Fallo'
   },
   pt: {
     'alert.duplicate_damage': 'Erro: Uma configuração com os mesmos valores de dano já existe!',
@@ -484,6 +498,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     'app.burst_delay': 'Atraso entre Rajadas (ms)',
     'app.burst_count': 'Tiros por Rajada',
     'app.avg_rpm': 'Méd: {0} RPM',
+    'app.missed_shots': 'Tiros errados',
     'avg.ttk': 'Tempo de Abate Médio (TTK): ',
     'table.shots': 'Tiros (STK)',
     'table.ttk': 'TTK (ms)',
@@ -493,7 +508,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     'title.shot_combinations': 'Combinações de Tiros',
     'subtitle.shot_combinations': 'Combinações mínimas de partes para matar.',
     'prob.shots_kill': 'Abate com {0} Tiros',
-    'part.any_part': 'Qualquer Parte'
+    'part.any_part': 'Qualquer Parte',
+    'part.miss': 'Erro'
   },
   ms: {
     'alert.duplicate_damage': 'Ralat: Konfigurasi dengan kerosakan yang sama sudah wujud!',
@@ -544,6 +560,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     'app.burst_delay': 'Sela Antara Burst (ms)',
     'app.burst_count': 'Tembakan setiap Burst',
     'app.avg_rpm': 'Purata: {0} RPM',
+    'app.missed_shots': 'Tembakan Tersasar',
     'avg.ttk': 'Purata Masa Membunuh (TTK): ',
     'table.shots': 'Tembakan (STK)',
     'table.ttk': 'TTK (ms)',
@@ -553,7 +570,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     'title.shot_combinations': 'Kombinasi Tembakan',
     'subtitle.shot_combinations': 'Kombinasi minimum bahagian untuk membunuh.',
     'prob.shots_kill': 'Bunuh dengan {0} Tembakan',
-    'part.any_part': 'Mana-mana Bahagian'
+    'part.any_part': 'Mana-mana Bahagian',
+    'part.miss': 'Tersasar'
   },
   id: {
     'alert.duplicate_damage': 'Kesalahan: Konfigurasi dengan kerusakan yang sama sudah ada!',
@@ -604,6 +622,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     'app.burst_delay': 'Jeda Antar Burst (ms)',
     'app.burst_count': 'Tembakan per Burst',
     'app.avg_rpm': 'Rata2: {0} RPM',
+    'app.missed_shots': 'Tembakan Meleset',
     'avg.ttk': 'Rata-rata Waktu Membunuh (TTK): ',
     'table.shots': 'Tembakan (STK)',
     'table.ttk': 'TTK (ms)',
@@ -613,7 +632,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     'title.shot_combinations': 'Kombinasi Tembakan',
     'subtitle.shot_combinations': 'Kombinasi minimal bagian untuk membunuh.',
     'prob.shots_kill': 'Membunuh dengan {0} Tembakan',
-    'part.any_part': 'Bagian Mana Pun'
+    'part.any_part': 'Bagian Mana Pun',
+    'part.miss': 'Meleset'
   },
   hi: {
     'alert.duplicate_damage': 'त्रुटि: समान डैमेज मानों वाला कॉन्फ़िगरेशन पहले से मौजूद है!',
@@ -664,6 +684,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     'app.burst_delay': 'बर्स्ट डिले (ms)',
     'app.burst_count': 'प्रति बर्स्ट शॉट्स',
     'app.avg_rpm': 'औसत: {0} RPM',
+    'app.missed_shots': 'चूके हुए शॉट्स',
     'avg.ttk': 'औसत टाइम-टू-किल (TTK): ',
     'table.shots': 'शॉट्स (STK)',
     'table.ttk': 'TTK (ms)',
@@ -673,6 +694,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     'title.shot_combinations': 'शॉट संयोजन',
     'subtitle.shot_combinations': 'मारने के लिए आवश्यक न्यूनतम शरीर भाग संयोजन।',
     'prob.shots_kill': '{0} शॉट्स में किल',
-    'part.any_part': 'कोई भी भाग'
+    'part.any_part': 'कोई भी भाग',
+    'part.miss': 'चूक'
   }
 };
