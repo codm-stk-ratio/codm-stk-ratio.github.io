@@ -593,9 +593,9 @@ function App() {
     if (rangeChartData.length === 0) return;
 
     try {
-      const scale = 2;
-      const canvasW = 880;
-      const canvasH = 540;
+      const scale = 4;
+      const canvasW = 1000;
+      const canvasH = 604;
       const canvas = document.createElement('canvas');
       canvas.width = canvasW * scale;
       canvas.height = canvasH * scale;
@@ -620,7 +620,7 @@ function App() {
       // Legend box
       const legX = 20;
       const legY = 52;
-      const legW = 840;
+      const legW = 960;
       const legH = 40;
       ctx.fillStyle = '#22252a';
       ctx.strokeStyle = '#333842';
@@ -655,8 +655,8 @@ function App() {
       // Chart container box
       const chartX = 20;
       const chartY = 104;
-      const svgW = 840;
-      const svgH = 416;
+      const svgW = 960;
+      const svgH = 480;
       ctx.fillStyle = '#121418';
       ctx.strokeStyle = '#333842';
       ctx.lineWidth = 1;
@@ -686,7 +686,7 @@ function App() {
       const plotH = svgH - padT - padB;
       const nCols = rangeChartData.length;
       const colW = plotW / nCols;
-      const pillW = Math.min(132, colW - 10);
+      const pillW = Math.min(144, colW - 10);
 
       const getY = (val: number) => padT + plotH - ((val - yMin) / yRange) * plotH;
 
@@ -1389,7 +1389,7 @@ function App() {
               modalState === 'import'
                 ? { maxWidth: '460px' }
                 : modalState === 'chart'
-                  ? { maxWidth: '960px', width: '94%', maxHeight: '90vh' }
+                  ? { maxWidth: '1200px', width: '96%', maxHeight: '94vh' }
                   : undefined
             }
           >
@@ -1452,8 +1452,8 @@ function App() {
                 const yMax = maxRaw + span * 0.25;
                 const yRange = Math.max(1e-6, yMax - yMin);
 
-                const svgW = 840;
-                const svgH = 420;
+                const svgW = 960;
+                const svgH = 480;
                 const padL = 78;
                 const padR = 24;
                 const padT = 40;
@@ -1462,7 +1462,7 @@ function App() {
                 const plotH = svgH - padT - padB;
                 const nCols = rangeChartData.length;
                 const colW = plotW / nCols;
-                const pillW = Math.min(132, colW - 10);
+                const pillW = Math.min(144, colW - 10);
 
                 const getY = (val: number) => padT + plotH - ((val - yMin) / yRange) * plotH;
 
