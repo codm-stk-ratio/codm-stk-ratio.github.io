@@ -255,7 +255,8 @@ function App() {
       return [];
     }
   });
-  const [modalState, setModalState] = useState<'none' | 'load' | 'save'>('none');
+  const [modalState, setModalState] = useState<'none' | 'load' | 'save' | 'import'>('none');
+  const [isDraggingImage, setIsDraggingImage] = useState<boolean>(false);
   const [newBuildName, setNewBuildName] = useState<string>('');
 
   useEffect(() => {
@@ -406,6 +407,7 @@ function App() {
       setExtractedRanges(result.ranges);
       setSelectedRangeIndex(0);
       setDamages({ ...result.ranges[0].damages });
+      setModalState('none');
     } finally {
       setIsScanning(false);
     }
@@ -420,6 +422,7 @@ function App() {
   };
 
   useEffect(() => {
+    if (modalState !== 'import') return;
     const handlePaste = (e: ClipboardEvent) => {
       const items = e.clipboardData?.items;
       if (!items) return;
@@ -792,7 +795,7 @@ function App() {
               <button
                 type="button"
                 className="btn btn-import-image"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => setModalState('import')}
                 disabled={isScanning}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -800,7 +803,7 @@ function App() {
                   <circle cx="8.5" cy="8.5" r="1.5"></circle>
                   <polyline points="21 15 16 10 5 21"></polyline>
                 </svg>
-                {isScanning ? t('btn.scanning') : t('btn.import_image')}
+                {t('btn.import_image')}
               </button>
               <button className="btn" onClick={handleSaveDamages}>{t('btn.save_build')}</button>
               <button className="btn" onClick={() => setModalState('load')} disabled={savedBuilds.length === 0}>
@@ -808,7 +811,6 @@ function App() {
               </button>
               <button className="btn" onClick={handleClearDamages}>{t('btn.clear_all')}</button>
             </div>
-            <p className="import-hint">{t('hint.paste_image')}</p>
           </div>
 
           {extractedRanges.length > 0 && (
@@ -1028,65 +1030,131 @@ function App() {
           className="modal-overlay" 
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) {
+              setIsDraggingImage(false);
               setModalState('none');
             }
           }}
         >
-          <div className="modal-content">
+          <div className="modal-content" style={modalState === 'import' ? { maxWidth: '460px' } : undefined}>
             <div className="modal-header">
-              <h2>{modalState === 'load' ? t('btn.load_build') : t('btn.save_build')}</h2>
-              <button className="close-btn" onClick={() => setModalState('none')}>&times;</button>
+              <h2>
+                {modalState === 'import'
+                  ? t('btn.import_image')
+                  : modalState === 'load'
+                    ? t('btn.load_build')
+                    : t('btn.save_build')}
+              </h2>
+              <button
+                className="close-btn"
+                onClick={() => {
+                  setIsDraggingImage(false);
+                  setModalState('none');
+                }}
+              >
+                &times;
+              </button>
             </div>
-            
-            {modalState === 'save' && (
-              <div style={{ marginBottom: '2rem' }}>
-                <h3 style={{ marginTop: 0, marginBottom: '0.8rem', fontSize: '1.2rem' }}>{t('modal.save_new')}</h3>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <input 
-                    style={{ flex: 1, padding: '0.6rem', background: 'var(--input-bg)', color: 'var(--text-color)', border: '1px solid var(--border-color)', borderRadius: '4px', fontFamily: 'inherit', fontSize: '1.1rem' }}
-                    value={newBuildName}
-                    onChange={e => setNewBuildName(e.target.value)}
-                    placeholder={t('modal.build_name')}
-                  />
-                  <button className="btn" onClick={handleSaveNew}>{t('btn.save_new')}</button>
-                </div>
-              </div>
-            )}
 
-            {modalState === 'save' && savedBuilds.length > 0 && (
-              <h3 style={{ marginTop: 0, marginBottom: '0.8rem', fontSize: '1.2rem' }}>{t('modal.overwrite_existing')}</h3>
-            )}
-            
-            <div className="modal-body" style={{ gap: '0.8rem' }}>
-              {savedBuilds.length === 0 && modalState === 'load' ? (
-                <p>{t('modal.no_saved')}</p>
-              ) : (
-                savedBuilds.map(build => (
-                  <div key={build.id} style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center', 
-                    backgroundColor: 'var(--card-bg)', 
-                    padding: '0.8rem 1rem', 
-                    borderRadius: '4px', 
-                    border: '1px solid var(--border-color)',
-                    flexShrink: 0
-                  }}>
-                    <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{build.name}</span>
-                    
-                    {modalState === 'load' ? (
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button onClick={() => handleLoadBuild(build)} className="btn" style={{ padding: '0.3rem 0.8rem' }}>{t('btn.load')}</button>
-                        <button onClick={() => handleRenameBuild(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem' }}>{t('btn.rename')}</button>
-                        <button onClick={() => handleDeleteBuild(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem', backgroundColor: '#d32f2f', borderColor: '#d32f2f', color: 'white' }}>{t('btn.delete')}</button>
-                      </div>
-                    ) : (
-                      <button onClick={() => handleOverwrite(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem', backgroundColor: 'var(--accent-color)', borderColor: 'var(--accent-color)', color: 'white' }}>{t('btn.overwrite')}</button>
-                    )}
+            {modalState === 'import' ? (
+              <div
+                className={`import-dropzone ${isDraggingImage ? 'dragging' : ''}`}
+                onClick={() => {
+                  if (!isScanning) fileInputRef.current?.click();
+                }}
+                onDragEnter={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDraggingImage(true);
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (!isDraggingImage) setIsDraggingImage(true);
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+                  setIsDraggingImage(false);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDraggingImage(false);
+                  if (isScanning) return;
+                  const file = e.dataTransfer.files?.[0];
+                  if (file && file.type.startsWith('image/')) {
+                    handleProcessImageFile(file);
+                  }
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="import-dropzone-icon">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <p className="import-dropzone-title">
+                  {isScanning ? t('btn.scanning') : t('import.drop_or_paste')}
+                </p>
+                {!isScanning && (
+                  <p className="import-dropzone-sub">
+                    {t('import.click_to_browse')}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <>
+                {modalState === 'save' && (
+                  <div style={{ marginBottom: '2rem' }}>
+                    <h3 style={{ marginTop: 0, marginBottom: '0.8rem', fontSize: '1.2rem' }}>{t('modal.save_new')}</h3>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <input 
+                        style={{ flex: 1, padding: '0.6rem', background: 'var(--input-bg)', color: 'var(--text-color)', border: '1px solid var(--border-color)', borderRadius: '4px', fontFamily: 'inherit', fontSize: '1.1rem' }}
+                        value={newBuildName}
+                        onChange={e => setNewBuildName(e.target.value)}
+                        placeholder={t('modal.build_name')}
+                      />
+                      <button className="btn" onClick={handleSaveNew}>{t('btn.save_new')}</button>
+                    </div>
                   </div>
-                ))
-              )}
-            </div>
+                )}
+
+                {modalState === 'save' && savedBuilds.length > 0 && (
+                  <h3 style={{ marginTop: 0, marginBottom: '0.8rem', fontSize: '1.2rem' }}>{t('modal.overwrite_existing')}</h3>
+                )}
+                
+                <div className="modal-body" style={{ gap: '0.8rem' }}>
+                  {savedBuilds.length === 0 && modalState === 'load' ? (
+                    <p>{t('modal.no_saved')}</p>
+                  ) : (
+                    savedBuilds.map(build => (
+                      <div key={build.id} style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center', 
+                        backgroundColor: 'var(--card-bg)', 
+                        padding: '0.8rem 1rem', 
+                        borderRadius: '4px', 
+                        border: '1px solid var(--border-color)',
+                        flexShrink: 0
+                      }}>
+                        <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{build.name}</span>
+                        
+                        {modalState === 'load' ? (
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button onClick={() => handleLoadBuild(build)} className="btn" style={{ padding: '0.3rem 0.8rem' }}>{t('btn.load')}</button>
+                            <button onClick={() => handleRenameBuild(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem' }}>{t('btn.rename')}</button>
+                            <button onClick={() => handleDeleteBuild(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem', backgroundColor: '#d32f2f', borderColor: '#d32f2f', color: 'white' }}>{t('btn.delete')}</button>
+                          </div>
+                        ) : (
+                          <button onClick={() => handleOverwrite(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem', backgroundColor: 'var(--accent-color)', borderColor: 'var(--accent-color)', color: 'white' }}>{t('btn.overwrite')}</button>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
