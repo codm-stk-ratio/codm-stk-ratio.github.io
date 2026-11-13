@@ -255,7 +255,7 @@ function App() {
       return [];
     }
   });
-  const [modalState, setModalState] = useState<'none' | 'load' | 'save' | 'import'>('none');
+  const [modalState, setModalState] = useState<'none' | 'load' | 'save' | 'import' | 'chart'>('none');
   const [isDraggingImage, setIsDraggingImage] = useState<boolean>(false);
   const [newBuildName, setNewBuildName] = useState<string>('');
 
@@ -1026,271 +1026,20 @@ function App() {
                   );
                 })()}
 
-                {rangeChartData.length > 0 && (() => {
-                  const allYVals = rangeChartData.flatMap(d => d.levels.map(l => l.yVal));
-                  const uniqueYVals = Array.from(new Set(allYVals)).sort((a, b) => a - b);
-                  const minRaw = Math.min(...allYVals);
-                  const maxRaw = Math.max(...allYVals);
-                  const span = Math.max(hasValidTiming ? 80 : 2, maxRaw - minRaw);
-                  const yMin = Math.max(0, minRaw - span * 0.25);
-                  const yMax = maxRaw + span * 0.25;
-                  const yRange = Math.max(1e-6, yMax - yMin);
-
-                  const svgW = 540;
-                  const svgH = 320;
-                  const padL = 68;
-                  const padR = 16;
-                  const padT = 34;
-                  const padB = 62;
-                  const plotW = svgW - padL - padR;
-                  const plotH = svgH - padT - padB;
-                  const nCols = rangeChartData.length;
-                  const colW = plotW / nCols;
-                  const pillW = Math.min(104, colW - 6);
-
-                  const getY = (val: number) => padT + plotH - ((val - yMin) / yRange) * plotH;
-
-                  return (
-                    <div className="ttk-chart-section">
-                      <div className="ttk-chart-header">
-                        <h2>{t('title.ttk_chart')}</h2>
-                        {!hasValidTiming && (
-                          <span className="ttk-chart-unit-note">{t('chart.enter_fire_interval')}</span>
-                        )}
-                      </div>
-
-                      <div className="ttk-chart-legend">
-                        <span className="ttk-legend-item">
-                          <span className="ttk-legend-dot" style={{ backgroundColor: '#00e5ff' }}></span>
-                          100%
-                        </span>
-                        <span className="ttk-legend-item">
-                          <span className="ttk-legend-dot" style={{ backgroundColor: '#00e676' }}></span>
-                          &ge; 70%
-                        </span>
-                        <span className="ttk-legend-item">
-                          <span className="ttk-legend-dot" style={{ backgroundColor: '#ffd600' }}></span>
-                          &ge; 50%
-                        </span>
-                        <span className="ttk-legend-item">
-                          <span className="ttk-legend-dot" style={{ backgroundColor: '#ff9100' }}></span>
-                          &ge; 20%
-                        </span>
-                        <span className="ttk-legend-item">
-                          <span className="ttk-legend-dot" style={{ backgroundColor: '#ff4d4d' }}></span>
-                          &lt; 20%
-                        </span>
-                      </div>
-
-                      <div className="ttk-chart-wrapper">
-                        <svg viewBox={`0 0 ${svgW} ${svgH}`} className="ttk-chart-svg">
-                          {/* Active range highlight */}
-                          {extractedRanges.length > 1 && rangeChartData.map((col, ci) => {
-                            if (col.idx !== selectedRangeIndex) return null;
-                            const x0 = padL + ci * colW;
-                            return (
-                              <rect
-                                key={`active-bg-${col.rangeIndex}`}
-                                x={x0}
-                                y={padT}
-                                width={colW}
-                                height={plotH}
-                                fill="rgba(255, 152, 0, 0.08)"
-                              />
-                            );
-                          })}
-
-                          {/* Horizontal grid lines at each unique Y value */}
-                          {uniqueYVals.map(yv => {
-                            const py = getY(yv);
-                            return (
-                              <g key={`grid-y-${yv}`}>
-                                <line
-                                  x1={padL}
-                                  y1={py}
-                                  x2={padL + plotW}
-                                  y2={py}
-                                  stroke="rgba(255,255,255,0.12)"
-                                  strokeDasharray="4 4"
-                                  strokeWidth="1"
-                                />
-                                <text
-                                  x={padL - 8}
-                                  y={py + 5}
-                                  textAnchor="end"
-                                  fill="rgba(255,255,255,0.85)"
-                                  fontSize="16.5"
-                                  fontWeight="700"
-                                >
-                                  {hasValidTiming ? `${yv}ms` : `${yv}${t('table.shots_suffix')}`}
-                                </text>
-                              </g>
-                            );
-                          })}
-
-                          {/* Vertical range dividers & X-axis labels */}
-                          {rangeChartData.map((col, ci) => {
-                            const x0 = padL + ci * colW;
-                            const x1 = x0 + colW;
-                            const xMid = (x0 + x1) / 2;
-                            const isSelected = extractedRanges.length > 1 && col.idx === selectedRangeIndex;
-
-                            return (
-                              <g
-                                key={`col-axis-${col.rangeIndex}`}
-                                style={{ cursor: extractedRanges.length > 1 ? 'pointer' : 'default' }}
-                                onClick={() => {
-                                  if (extractedRanges.length > 1) handleSelectRange(col.idx);
-                                }}
-                              >
-                                <line
-                                  x1={x0}
-                                  y1={padT}
-                                  x2={x0}
-                                  y2={padT + plotH}
-                                  stroke="rgba(255,255,255,0.18)"
-                                  strokeWidth="1"
-                                />
-                                {ci === nCols - 1 && (
-                                  <line
-                                    x1={x1}
-                                    y1={padT}
-                                    x2={x1}
-                                    y2={padT + plotH}
-                                    stroke="rgba(255,255,255,0.18)"
-                                    strokeWidth="1"
-                                  />
-                                )}
-                                <text
-                                  x={xMid}
-                                  y={padT + plotH + 25}
-                                  textAnchor="middle"
-                                  fill={isSelected ? '#ff9800' : '#ffffff'}
-                                  fontSize="17.5"
-                                  fontWeight="700"
-                                >
-                                  {t('range.simple', col.rangeIndex)}
-                                </text>
-                                {col.from !== undefined && col.to !== undefined && (
-                                  <text
-                                    x={xMid}
-                                    y={padT + plotH + 46}
-                                    textAnchor="middle"
-                                    fill="rgba(255,255,255,0.75)"
-                                    fontSize="15.5"
-                                  >
-                                    {col.from} - {col.to}m
-                                  </text>
-                                )}
-                              </g>
-                            );
-                          })}
-
-                          {/* Baseline */}
-                          <line
-                            x1={padL}
-                            y1={padT + plotH}
-                            x2={padL + plotW}
-                            y2={padT + plotH}
-                            stroke="rgba(255,255,255,0.35)"
-                            strokeWidth="1.5"
-                          />
-
-                          {/* Vertical step connectors between adjacent ranges */}
-                          {rangeChartData.slice(0, -1).map((col, ci) => {
-                            const nextCol = rangeChartData[ci + 1];
-                            const xBound = padL + (ci + 1) * colW;
-                            return col.levels.map((lvl, li) => {
-                              // Connect 100% level to next range's 100% level, and lower levels to nearest cumulative prob in next range
-                              const target =
-                                li === col.levels.length - 1
-                                  ? nextCol.levels[nextCol.levels.length - 1]
-                                  : nextCol.levels.reduce((best, cand) =>
-                                      Math.abs(cand.cumulProb - lvl.cumulProb) < Math.abs(best.cumulProb - lvl.cumulProb)
-                                        ? cand
-                                        : best
-                                    , nextCol.levels[0]);
-                              if (!target) return null;
-                              const y1 = getY(lvl.yVal);
-                              const y2 = getY(target.yVal);
-                              if (Math.abs(y1 - y2) < 0.5) return null;
-                              return (
-                                <line
-                                  key={`step-${ci}-${li}`}
-                                  x1={xBound}
-                                  y1={y1}
-                                  x2={xBound}
-                                  y2={y2}
-                                  stroke={lvl.color}
-                                  strokeWidth="2"
-                                  strokeDasharray="3 3"
-                                  opacity="0.7"
-                                />
-                              );
-                            });
-                          })}
-
-                          {/* Horizontal TTK lines & labels per range */}
-                          {rangeChartData.map((col, ci) => {
-                            const x0 = padL + ci * colW;
-                            const x1 = x0 + colW;
-                            const xMid = (x0 + x1) / 2;
-
-                            return col.levels.map((lvl, li) => {
-                              const py = getY(lvl.yVal);
-                              const pctStr = `${parseFloat(lvl.cumulProb.toFixed(1))}%`;
-                              const labelText = hasValidTiming
-                                ? `${lvl.yVal}ms (${pctStr})`
-                                : `${lvl.yVal}${t('table.shots_suffix')} (${pctStr})`;
-
-                              return (
-                                <g
-                                  key={`seg-${col.rangeIndex}-${li}`}
-                                  style={{ cursor: extractedRanges.length > 1 ? 'pointer' : 'default' }}
-                                  onClick={() => {
-                                    if (extractedRanges.length > 1) handleSelectRange(col.idx);
-                                  }}
-                                >
-                                  <line
-                                    x1={x0 + 2}
-                                    y1={py}
-                                    x2={x1 - 2}
-                                    y2={py}
-                                    stroke={lvl.color}
-                                    strokeWidth="3.5"
-                                    strokeLinecap="round"
-                                  />
-                                  <circle cx={x0 + 3} cy={py} r="4" fill={lvl.color} />
-                                  <circle cx={x1 - 3} cy={py} r="4" fill={lvl.color} />
-                                  <rect
-                                    x={xMid - pillW / 2}
-                                    y={py - 30}
-                                    width={pillW}
-                                    height="23"
-                                    rx="4"
-                                    fill="rgba(15, 17, 21, 0.9)"
-                                    stroke={lvl.color}
-                                    strokeWidth="1.2"
-                                  />
-                                  <text
-                                    x={xMid}
-                                    y={py - 13}
-                                    textAnchor="middle"
-                                    fill={lvl.color}
-                                    fontSize="15.5"
-                                    fontWeight="700"
-                                  >
-                                    {labelText}
-                                  </text>
-                                </g>
-                              );
-                            });
-                          })}
-                        </svg>
-                      </div>
-                    </div>
-                  );
-                })()}
+                {rangeChartData.length > 0 && (
+                  <div style={{ marginTop: '1.5rem' }}>
+                    <button
+                      type="button"
+                      className="btn btn-show-chart"
+                      onClick={() => setModalState('chart')}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                      </svg>
+                      {t('btn.show_chart')}
+                    </button>
+                  </div>
+                )}
                 
                 <div style={{ marginTop: '3rem' }}>
                   <h2>{t('title.shot_combinations')}</h2>
@@ -1367,14 +1116,25 @@ function App() {
             }
           }}
         >
-          <div className="modal-content" style={modalState === 'import' ? { maxWidth: '460px' } : undefined}>
+          <div
+            className="modal-content"
+            style={
+              modalState === 'import'
+                ? { maxWidth: '460px' }
+                : modalState === 'chart'
+                  ? { maxWidth: '960px', width: '94%', maxHeight: '90vh' }
+                  : undefined
+            }
+          >
             <div className="modal-header">
               <h2>
                 {modalState === 'import'
                   ? t('btn.import_image')
-                  : modalState === 'load'
-                    ? t('btn.load_build')
-                    : t('btn.save_build')}
+                  : modalState === 'chart'
+                    ? t('title.ttk_chart')
+                    : modalState === 'load'
+                      ? t('btn.load_build')
+                      : t('btn.save_build')}
               </h2>
               <button
                 className="close-btn"
@@ -1387,7 +1147,271 @@ function App() {
               </button>
             </div>
 
-            {modalState === 'import' ? (
+            {modalState === 'chart' ? (
+              rangeChartData.length > 0 && (() => {
+                const allYVals = rangeChartData.flatMap(d => d.levels.map(l => l.yVal));
+                const uniqueYVals = Array.from(new Set(allYVals)).sort((a, b) => a - b);
+                const minRaw = Math.min(...allYVals);
+                const maxRaw = Math.max(...allYVals);
+                const span = Math.max(hasValidTiming ? 80 : 2, maxRaw - minRaw);
+                const yMin = Math.max(0, minRaw - span * 0.25);
+                const yMax = maxRaw + span * 0.25;
+                const yRange = Math.max(1e-6, yMax - yMin);
+
+                const svgW = 840;
+                const svgH = 420;
+                const padL = 78;
+                const padR = 24;
+                const padT = 40;
+                const padB = 68;
+                const plotW = svgW - padL - padR;
+                const plotH = svgH - padT - padB;
+                const nCols = rangeChartData.length;
+                const colW = plotW / nCols;
+                const pillW = Math.min(132, colW - 10);
+
+                const getY = (val: number) => padT + plotH - ((val - yMin) / yRange) * plotH;
+
+                return (
+                  <div className="modal-body" style={{ paddingRight: 0 }}>
+                    {!hasValidTiming && (
+                      <div className="ttk-chart-unit-note" style={{ marginBottom: '0.8rem' }}>
+                        {t('chart.enter_fire_interval')}
+                      </div>
+                    )}
+
+                    <div className="ttk-chart-legend">
+                      <span className="ttk-legend-item">
+                        <span className="ttk-legend-dot" style={{ backgroundColor: '#00e5ff' }}></span>
+                        100%
+                      </span>
+                      <span className="ttk-legend-item">
+                        <span className="ttk-legend-dot" style={{ backgroundColor: '#00e676' }}></span>
+                        &ge; 70%
+                      </span>
+                      <span className="ttk-legend-item">
+                        <span className="ttk-legend-dot" style={{ backgroundColor: '#ffd600' }}></span>
+                        &ge; 50%
+                      </span>
+                      <span className="ttk-legend-item">
+                        <span className="ttk-legend-dot" style={{ backgroundColor: '#ff9100' }}></span>
+                        &ge; 20%
+                      </span>
+                      <span className="ttk-legend-item">
+                        <span className="ttk-legend-dot" style={{ backgroundColor: '#ff4d4d' }}></span>
+                        &lt; 20%
+                      </span>
+                    </div>
+
+                    <div className="ttk-chart-wrapper">
+                      <svg viewBox={`0 0 ${svgW} ${svgH}`} className="ttk-chart-svg">
+                        {/* Active range highlight */}
+                        {extractedRanges.length > 1 && rangeChartData.map((col, ci) => {
+                          if (col.idx !== selectedRangeIndex) return null;
+                          const x0 = padL + ci * colW;
+                          return (
+                            <rect
+                              key={`active-bg-${col.rangeIndex}`}
+                              x={x0}
+                              y={padT}
+                              width={colW}
+                              height={plotH}
+                              fill="rgba(255, 152, 0, 0.08)"
+                            />
+                          );
+                        })}
+
+                        {/* Horizontal grid lines at each unique Y value */}
+                        {uniqueYVals.map(yv => {
+                          const py = getY(yv);
+                          return (
+                            <g key={`grid-y-${yv}`}>
+                              <line
+                                x1={padL}
+                                y1={py}
+                                x2={padL + plotW}
+                                y2={py}
+                                stroke="rgba(255,255,255,0.12)"
+                                strokeDasharray="4 4"
+                                strokeWidth="1"
+                              />
+                              <text
+                                x={padL - 10}
+                                y={py + 6}
+                                textAnchor="end"
+                                fill="rgba(255,255,255,0.9)"
+                                fontSize="18"
+                                fontWeight="700"
+                              >
+                                {hasValidTiming ? `${yv}ms` : `${yv}${t('table.shots_suffix')}`}
+                              </text>
+                            </g>
+                          );
+                        })}
+
+                        {/* Vertical range dividers & X-axis labels */}
+                        {rangeChartData.map((col, ci) => {
+                          const x0 = padL + ci * colW;
+                          const x1 = x0 + colW;
+                          const xMid = (x0 + x1) / 2;
+                          const isSelected = extractedRanges.length > 1 && col.idx === selectedRangeIndex;
+
+                          return (
+                            <g
+                              key={`col-axis-${col.rangeIndex}`}
+                              style={{ cursor: extractedRanges.length > 1 ? 'pointer' : 'default' }}
+                              onClick={() => {
+                                if (extractedRanges.length > 1) handleSelectRange(col.idx);
+                              }}
+                            >
+                              <line
+                                x1={x0}
+                                y1={padT}
+                                x2={x0}
+                                y2={padT + plotH}
+                                stroke="rgba(255,255,255,0.18)"
+                                strokeWidth="1"
+                              />
+                              {ci === nCols - 1 && (
+                                <line
+                                  x1={x1}
+                                  y1={padT}
+                                  x2={x1}
+                                  y2={padT + plotH}
+                                  stroke="rgba(255,255,255,0.18)"
+                                  strokeWidth="1"
+                                />
+                              )}
+                              <text
+                                x={xMid}
+                                y={padT + plotH + 28}
+                                textAnchor="middle"
+                                fill={isSelected ? '#ff9800' : '#ffffff'}
+                                fontSize="19"
+                                fontWeight="700"
+                              >
+                                {t('range.simple', col.rangeIndex)}
+                              </text>
+                              {col.from !== undefined && col.to !== undefined && (
+                                <text
+                                  x={xMid}
+                                  y={padT + plotH + 50}
+                                  textAnchor="middle"
+                                  fill="rgba(255,255,255,0.75)"
+                                  fontSize="16.5"
+                                >
+                                  {col.from} - {col.to}m
+                                </text>
+                              )}
+                            </g>
+                          );
+                        })}
+
+                        {/* Baseline */}
+                        <line
+                          x1={padL}
+                          y1={padT + plotH}
+                          x2={padL + plotW}
+                          y2={padT + plotH}
+                          stroke="rgba(255,255,255,0.35)"
+                          strokeWidth="1.5"
+                        />
+
+                        {/* Vertical step connectors between adjacent ranges */}
+                        {rangeChartData.slice(0, -1).map((col, ci) => {
+                          const nextCol = rangeChartData[ci + 1];
+                          const xBound = padL + (ci + 1) * colW;
+                          return col.levels.map((lvl, li) => {
+                            const target =
+                              li === col.levels.length - 1
+                                ? nextCol.levels[nextCol.levels.length - 1]
+                                : nextCol.levels.reduce((best, cand) =>
+                                    Math.abs(cand.cumulProb - lvl.cumulProb) < Math.abs(best.cumulProb - lvl.cumulProb)
+                                      ? cand
+                                      : best
+                                  , nextCol.levels[0]);
+                            if (!target) return null;
+                            const y1 = getY(lvl.yVal);
+                            const y2 = getY(target.yVal);
+                            if (Math.abs(y1 - y2) < 0.5) return null;
+                            return (
+                              <line
+                                key={`step-${ci}-${li}`}
+                                x1={xBound}
+                                y1={y1}
+                                x2={xBound}
+                                y2={y2}
+                                stroke={lvl.color}
+                                strokeWidth="2.2"
+                                strokeDasharray="4 4"
+                                opacity="0.75"
+                              />
+                            );
+                          });
+                        })}
+
+                        {/* Horizontal TTK lines & labels per range */}
+                        {rangeChartData.map((col, ci) => {
+                          const x0 = padL + ci * colW;
+                          const x1 = x0 + colW;
+                          const xMid = (x0 + x1) / 2;
+
+                          return col.levels.map((lvl, li) => {
+                            const py = getY(lvl.yVal);
+                            const pctStr = `${parseFloat(lvl.cumulProb.toFixed(1))}%`;
+                            const labelText = hasValidTiming
+                              ? `${lvl.yVal}ms (${pctStr})`
+                              : `${lvl.yVal}${t('table.shots_suffix')} (${pctStr})`;
+
+                            return (
+                              <g
+                                key={`seg-${col.rangeIndex}-${li}`}
+                                style={{ cursor: extractedRanges.length > 1 ? 'pointer' : 'default' }}
+                                onClick={() => {
+                                  if (extractedRanges.length > 1) handleSelectRange(col.idx);
+                                }}
+                              >
+                                <line
+                                  x1={x0 + 3}
+                                  y1={py}
+                                  x2={x1 - 3}
+                                  y2={py}
+                                  stroke={lvl.color}
+                                  strokeWidth="4"
+                                  strokeLinecap="round"
+                                />
+                                <circle cx={x0 + 4} cy={py} r="4.5" fill={lvl.color} />
+                                <circle cx={x1 - 4} cy={py} r="4.5" fill={lvl.color} />
+                                <rect
+                                  x={xMid - pillW / 2}
+                                  y={py - 33}
+                                  width={pillW}
+                                  height="26"
+                                  rx="5"
+                                  fill="rgba(15, 17, 21, 0.92)"
+                                  stroke={lvl.color}
+                                  strokeWidth="1.3"
+                                />
+                                <text
+                                  x={xMid}
+                                  y={py - 14}
+                                  textAnchor="middle"
+                                  fill={lvl.color}
+                                  fontSize="17"
+                                  fontWeight="700"
+                                >
+                                  {labelText}
+                                </text>
+                              </g>
+                            );
+                          });
+                        })}
+                      </svg>
+                    </div>
+                  </div>
+                );
+              })()
+            ) : modalState === 'import' ? (
               <>
                 <div className="import-warning-box">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="import-warning-icon">

@@ -688,6 +688,19 @@ input[type="number"] {
   font-size: 1.2rem;
 }
 
+.btn-show-chart {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1.2rem;
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
 .ttk-chart-section {
   margin-top: 2.5rem;
 }
