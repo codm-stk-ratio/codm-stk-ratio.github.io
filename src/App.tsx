@@ -1036,16 +1036,17 @@ function App() {
                   const yMax = maxRaw + span * 0.25;
                   const yRange = Math.max(1e-6, yMax - yMin);
 
-                  const svgW = 680;
-                  const svgH = 310;
-                  const padL = 66;
-                  const padR = 26;
-                  const padT = 28;
-                  const padB = 54;
+                  const svgW = 540;
+                  const svgH = 320;
+                  const padL = 68;
+                  const padR = 16;
+                  const padT = 34;
+                  const padB = 62;
                   const plotW = svgW - padL - padR;
                   const plotH = svgH - padT - padB;
                   const nCols = rangeChartData.length;
                   const colW = plotW / nCols;
+                  const pillW = Math.min(104, colW - 6);
 
                   const getY = (val: number) => padT + plotH - ((val - yMin) / yRange) * plotH;
 
@@ -1115,10 +1116,10 @@ function App() {
                                 />
                                 <text
                                   x={padL - 8}
-                                  y={py + 4}
+                                  y={py + 5}
                                   textAnchor="end"
-                                  fill="rgba(255,255,255,0.75)"
-                                  fontSize="12"
+                                  fill="rgba(255,255,255,0.85)"
+                                  fontSize="16.5"
                                   fontWeight="700"
                                 >
                                   {hasValidTiming ? `${yv}ms` : `${yv}${t('table.shots_suffix')}`}
@@ -1162,10 +1163,10 @@ function App() {
                                 )}
                                 <text
                                   x={xMid}
-                                  y={padT + plotH + 22}
+                                  y={padT + plotH + 25}
                                   textAnchor="middle"
                                   fill={isSelected ? '#ff9800' : '#ffffff'}
-                                  fontSize="13"
+                                  fontSize="17.5"
                                   fontWeight="700"
                                 >
                                   {t('range.simple', col.rangeIndex)}
@@ -1173,10 +1174,10 @@ function App() {
                                 {col.from !== undefined && col.to !== undefined && (
                                   <text
                                     x={xMid}
-                                    y={padT + plotH + 39}
+                                    y={padT + plotH + 46}
                                     textAnchor="middle"
-                                    fill="rgba(255,255,255,0.65)"
-                                    fontSize="11.5"
+                                    fill="rgba(255,255,255,0.75)"
+                                    fontSize="15.5"
                                   >
                                     {col.from} - {col.to}m
                                   </text>
@@ -1262,21 +1263,21 @@ function App() {
                                   <circle cx={x0 + 3} cy={py} r="4" fill={lvl.color} />
                                   <circle cx={x1 - 3} cy={py} r="4" fill={lvl.color} />
                                   <rect
-                                    x={xMid - 46}
-                                    y={py - 22}
-                                    width="92"
-                                    height="17"
+                                    x={xMid - pillW / 2}
+                                    y={py - 30}
+                                    width={pillW}
+                                    height="23"
                                     rx="4"
-                                    fill="rgba(15, 17, 21, 0.88)"
+                                    fill="rgba(15, 17, 21, 0.9)"
                                     stroke={lvl.color}
-                                    strokeWidth="1"
+                                    strokeWidth="1.2"
                                   />
                                   <text
                                     x={xMid}
-                                    y={py - 10}
+                                    y={py - 13}
                                     textAnchor="middle"
                                     fill={lvl.color}
-                                    fontSize="11.5"
+                                    fontSize="15.5"
                                     fontWeight="700"
                                   >
                                     {labelText}
