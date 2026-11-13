@@ -37,6 +37,7 @@
   --bg-color: #0a0a0a;
   --text-color: #ffffff;
   --accent-color: #ff9800;
+  --accent-text-color: #000000;
   --panel-bg: #1a1a1a;
   --border-color: #333333;
   --card-bg: #2a2a2a;
@@ -50,6 +51,7 @@
   --bg-color: #e4e7eb;
   --text-color: #1a1a1a;
   --accent-color: #d84315;
+  --accent-text-color: #ffffff;
   --panel-bg: #f0f2f5;
   --border-color: #c2c7cc;
   --card-bg: #e8ebf0;
@@ -217,7 +219,7 @@ body[data-lang="hi"] {
 
 .fire-mode-btn.active {
   background-color: var(--accent-color);
-  color: #ffffff;
+  color: var(--accent-text-color);
   opacity: 1;
 }
 
@@ -246,7 +248,7 @@ body[data-lang="hi"] {
 .counter-btn:hover:not(:disabled) {
   border-color: var(--accent-color);
   background-color: var(--accent-color);
-  color: #ffffff;
+  color: var(--accent-text-color);
 }
 
 .counter-btn:disabled {
@@ -291,7 +293,7 @@ input[type="number"] {
 .btn:hover:not(:disabled) {
   border-color: var(--accent-color);
   background-color: var(--accent-color);
-  color: #fff;
+  color: var(--accent-text-color);
 }
 
 .btn:disabled {
@@ -418,7 +420,7 @@ input[type="number"] {
 
 .range-col-header.active {
   background-color: var(--accent-color);
-  color: #ffffff;
+  color: var(--accent-text-color);
 }
 
 .range-col-title {
@@ -684,6 +686,66 @@ input[type="number"] {
 
 .results-table td {
   font-size: 1.2rem;
+}
+
+.ttk-chart-section {
+  margin-top: 2.5rem;
+}
+
+.ttk-chart-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-bottom: 0.8rem;
+}
+
+.ttk-chart-unit-note {
+  font-size: 0.95rem;
+  color: var(--accent-color);
+  opacity: 0.9;
+}
+
+.ttk-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+  padding: 0.55rem 0.85rem;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+
+.ttk-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.ttk-legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.ttk-chart-wrapper {
+  width: 100%;
+  background-color: #121418;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.5rem;
+  overflow: hidden;
+}
+
+.ttk-chart-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  font-family: inherit;
 }
 
 @media (max-width: 900px) {

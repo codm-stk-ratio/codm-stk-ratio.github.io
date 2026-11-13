@@ -522,6 +522,72 @@ function App() {
     ? Math.round((60000 * bcNum) / ((bcNum - 1) * fiNum + bdNum))
     : null;
 
+  const getProbTierColor = (cumulProb: number): string => {
+    if (cumulProb >= 99.99) return '#00e5ff'; // Cyan: 100%
+    if (cumulProb >= 70) return '#00e676';    // Green: >= 70%
+    if (cumulProb >= 50) return '#ffd600';    // Yellow: >= 50%
+    if (cumulProb >= 20) return '#ff9100';    // Orange: >= 20%
+    return '#ff4d4d';                         // Red: < 20%
+  };
+
+  const rangeChartData = useMemo(() => {
+    const sourceRanges: ExtractedRange[] =
+      extractedRanges.length > 0
+        ? extractedRanges
+        : isReady
+          ? [{ rangeIndex: 1, damages }]
+          : [];
+
+    if (sourceRanges.length === 0) return [];
+
+    return sourceRanges
+      .map((r, idx) => {
+        const hasEmpty = bodyPartsList.some(
+          p => !r.damages[p.id] || isNaN(parseFloat(r.damages[p.id])) || parseFloat(r.damages[p.id]) <= 0
+        );
+        if (hasEmpty) return null;
+
+        const inputParts: BodyPartStats[] = bodyPartsList.map(p => ({
+          name: p.label,
+          damage: parseFloat(r.damages[p.id]),
+          probability: FIXED_PROBABILITIES[mode][p.id],
+        }));
+
+        const probs = calculateKillProbabilities(health, inputParts, 20).filter(p => p.probability > 0.01);
+        const levels = probs.map(p => {
+          const totalShots = p.shots + missedShots;
+          let yVal = totalShots;
+          if (hasValidTiming) {
+            if (totalShots <= 1) {
+              yVal = 0;
+            } else if (fireMode === 'auto') {
+              yVal = formatTTK((totalShots - 1) * fiNum);
+            } else {
+              const numDelays = Math.floor((totalShots - 1) / bcNum);
+              const numIntra = (totalShots - 1) - numDelays;
+              yVal = formatTTK(numIntra * fiNum + numDelays * bdNum);
+            }
+          }
+          return {
+            shots: totalShots,
+            yVal,
+            exactProb: p.probability,
+            cumulProb: p.cumulativeProbability,
+            color: getProbTierColor(p.cumulativeProbability),
+          };
+        });
+
+        return {
+          idx,
+          rangeIndex: r.rangeIndex,
+          from: r.from,
+          to: r.to,
+          levels,
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null && item.levels.length > 0);
+  }, [extractedRanges, isReady, damages, mode, health, missedShots, hasValidTiming, fireMode, fiNum, bdNum, bcNum]);
+
   return (
     <div className="app-container">
       <header className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
@@ -959,6 +1025,271 @@ function App() {
                     </>
                   );
                 })()}
+
+                {rangeChartData.length > 0 && (() => {
+                  const allYVals = rangeChartData.flatMap(d => d.levels.map(l => l.yVal));
+                  const uniqueYVals = Array.from(new Set(allYVals)).sort((a, b) => a - b);
+                  const minRaw = Math.min(...allYVals);
+                  const maxRaw = Math.max(...allYVals);
+                  const span = Math.max(hasValidTiming ? 80 : 2, maxRaw - minRaw);
+                  const yMin = Math.max(0, minRaw - span * 0.25);
+                  const yMax = maxRaw + span * 0.25;
+                  const yRange = Math.max(1e-6, yMax - yMin);
+
+                  const svgW = 680;
+                  const svgH = 310;
+                  const padL = 66;
+                  const padR = 26;
+                  const padT = 28;
+                  const padB = 54;
+                  const plotW = svgW - padL - padR;
+                  const plotH = svgH - padT - padB;
+                  const nCols = rangeChartData.length;
+                  const colW = plotW / nCols;
+
+                  const getY = (val: number) => padT + plotH - ((val - yMin) / yRange) * plotH;
+
+                  return (
+                    <div className="ttk-chart-section">
+                      <div className="ttk-chart-header">
+                        <h2>{t('title.ttk_chart')}</h2>
+                        {!hasValidTiming && (
+                          <span className="ttk-chart-unit-note">{t('chart.enter_fire_interval')}</span>
+                        )}
+                      </div>
+
+                      <div className="ttk-chart-legend">
+                        <span className="ttk-legend-item">
+                          <span className="ttk-legend-dot" style={{ backgroundColor: '#00e5ff' }}></span>
+                          100%
+                        </span>
+                        <span className="ttk-legend-item">
+                          <span className="ttk-legend-dot" style={{ backgroundColor: '#00e676' }}></span>
+                          &ge; 70%
+                        </span>
+                        <span className="ttk-legend-item">
+                          <span className="ttk-legend-dot" style={{ backgroundColor: '#ffd600' }}></span>
+                          &ge; 50%
+                        </span>
+                        <span className="ttk-legend-item">
+                          <span className="ttk-legend-dot" style={{ backgroundColor: '#ff9100' }}></span>
+                          &ge; 20%
+                        </span>
+                        <span className="ttk-legend-item">
+                          <span className="ttk-legend-dot" style={{ backgroundColor: '#ff4d4d' }}></span>
+                          &lt; 20%
+                        </span>
+                      </div>
+
+                      <div className="ttk-chart-wrapper">
+                        <svg viewBox={`0 0 ${svgW} ${svgH}`} className="ttk-chart-svg">
+                          {/* Active range highlight */}
+                          {extractedRanges.length > 1 && rangeChartData.map((col, ci) => {
+                            if (col.idx !== selectedRangeIndex) return null;
+                            const x0 = padL + ci * colW;
+                            return (
+                              <rect
+                                key={`active-bg-${col.rangeIndex}`}
+                                x={x0}
+                                y={padT}
+                                width={colW}
+                                height={plotH}
+                                fill="rgba(255, 152, 0, 0.08)"
+                              />
+                            );
+                          })}
+
+                          {/* Horizontal grid lines at each unique Y value */}
+                          {uniqueYVals.map(yv => {
+                            const py = getY(yv);
+                            return (
+                              <g key={`grid-y-${yv}`}>
+                                <line
+                                  x1={padL}
+                                  y1={py}
+                                  x2={padL + plotW}
+                                  y2={py}
+                                  stroke="rgba(255,255,255,0.12)"
+                                  strokeDasharray="4 4"
+                                  strokeWidth="1"
+                                />
+                                <text
+                                  x={padL - 8}
+                                  y={py + 4}
+                                  textAnchor="end"
+                                  fill="rgba(255,255,255,0.75)"
+                                  fontSize="12"
+                                  fontWeight="700"
+                                >
+                                  {hasValidTiming ? `${yv}ms` : `${yv}${t('table.shots_suffix')}`}
+                                </text>
+                              </g>
+                            );
+                          })}
+
+                          {/* Vertical range dividers & X-axis labels */}
+                          {rangeChartData.map((col, ci) => {
+                            const x0 = padL + ci * colW;
+                            const x1 = x0 + colW;
+                            const xMid = (x0 + x1) / 2;
+                            const isSelected = extractedRanges.length > 1 && col.idx === selectedRangeIndex;
+
+                            return (
+                              <g
+                                key={`col-axis-${col.rangeIndex}`}
+                                style={{ cursor: extractedRanges.length > 1 ? 'pointer' : 'default' }}
+                                onClick={() => {
+                                  if (extractedRanges.length > 1) handleSelectRange(col.idx);
+                                }}
+                              >
+                                <line
+                                  x1={x0}
+                                  y1={padT}
+                                  x2={x0}
+                                  y2={padT + plotH}
+                                  stroke="rgba(255,255,255,0.18)"
+                                  strokeWidth="1"
+                                />
+                                {ci === nCols - 1 && (
+                                  <line
+                                    x1={x1}
+                                    y1={padT}
+                                    x2={x1}
+                                    y2={padT + plotH}
+                                    stroke="rgba(255,255,255,0.18)"
+                                    strokeWidth="1"
+                                  />
+                                )}
+                                <text
+                                  x={xMid}
+                                  y={padT + plotH + 22}
+                                  textAnchor="middle"
+                                  fill={isSelected ? '#ff9800' : '#ffffff'}
+                                  fontSize="13"
+                                  fontWeight="700"
+                                >
+                                  {t('range.simple', col.rangeIndex)}
+                                </text>
+                                {col.from !== undefined && col.to !== undefined && (
+                                  <text
+                                    x={xMid}
+                                    y={padT + plotH + 39}
+                                    textAnchor="middle"
+                                    fill="rgba(255,255,255,0.65)"
+                                    fontSize="11.5"
+                                  >
+                                    {col.from} - {col.to}m
+                                  </text>
+                                )}
+                              </g>
+                            );
+                          })}
+
+                          {/* Baseline */}
+                          <line
+                            x1={padL}
+                            y1={padT + plotH}
+                            x2={padL + plotW}
+                            y2={padT + plotH}
+                            stroke="rgba(255,255,255,0.35)"
+                            strokeWidth="1.5"
+                          />
+
+                          {/* Vertical step connectors between adjacent ranges */}
+                          {rangeChartData.slice(0, -1).map((col, ci) => {
+                            const nextCol = rangeChartData[ci + 1];
+                            const xBound = padL + (ci + 1) * colW;
+                            return col.levels.map((lvl, li) => {
+                              // Connect 100% level to next range's 100% level, and lower levels to nearest cumulative prob in next range
+                              const target =
+                                li === col.levels.length - 1
+                                  ? nextCol.levels[nextCol.levels.length - 1]
+                                  : nextCol.levels.reduce((best, cand) =>
+                                      Math.abs(cand.cumulProb - lvl.cumulProb) < Math.abs(best.cumulProb - lvl.cumulProb)
+                                        ? cand
+                                        : best
+                                    , nextCol.levels[0]);
+                              if (!target) return null;
+                              const y1 = getY(lvl.yVal);
+                              const y2 = getY(target.yVal);
+                              if (Math.abs(y1 - y2) < 0.5) return null;
+                              return (
+                                <line
+                                  key={`step-${ci}-${li}`}
+                                  x1={xBound}
+                                  y1={y1}
+                                  x2={xBound}
+                                  y2={y2}
+                                  stroke={lvl.color}
+                                  strokeWidth="2"
+                                  strokeDasharray="3 3"
+                                  opacity="0.7"
+                                />
+                              );
+                            });
+                          })}
+
+                          {/* Horizontal TTK lines & labels per range */}
+                          {rangeChartData.map((col, ci) => {
+                            const x0 = padL + ci * colW;
+                            const x1 = x0 + colW;
+                            const xMid = (x0 + x1) / 2;
+
+                            return col.levels.map((lvl, li) => {
+                              const py = getY(lvl.yVal);
+                              const pctStr = `${parseFloat(lvl.cumulProb.toFixed(1))}%`;
+                              const labelText = hasValidTiming
+                                ? `${lvl.yVal}ms (${pctStr})`
+                                : `${lvl.yVal}${t('table.shots_suffix')} (${pctStr})`;
+
+                              return (
+                                <g
+                                  key={`seg-${col.rangeIndex}-${li}`}
+                                  style={{ cursor: extractedRanges.length > 1 ? 'pointer' : 'default' }}
+                                  onClick={() => {
+                                    if (extractedRanges.length > 1) handleSelectRange(col.idx);
+                                  }}
+                                >
+                                  <line
+                                    x1={x0 + 2}
+                                    y1={py}
+                                    x2={x1 - 2}
+                                    y2={py}
+                                    stroke={lvl.color}
+                                    strokeWidth="3.5"
+                                    strokeLinecap="round"
+                                  />
+                                  <circle cx={x0 + 3} cy={py} r="4" fill={lvl.color} />
+                                  <circle cx={x1 - 3} cy={py} r="4" fill={lvl.color} />
+                                  <rect
+                                    x={xMid - 46}
+                                    y={py - 22}
+                                    width="92"
+                                    height="17"
+                                    rx="4"
+                                    fill="rgba(15, 17, 21, 0.88)"
+                                    stroke={lvl.color}
+                                    strokeWidth="1"
+                                  />
+                                  <text
+                                    x={xMid}
+                                    y={py - 10}
+                                    textAnchor="middle"
+                                    fill={lvl.color}
+                                    fontSize="11.5"
+                                    fontWeight="700"
+                                  >
+                                    {labelText}
+                                  </text>
+                                </g>
+                              );
+                            });
+                          })}
+                        </svg>
+                      </div>
+                    </div>
+                  );
+                })()}
                 
                 <div style={{ marginTop: '3rem' }}>
                   <h2>{t('title.shot_combinations')}</h2>
@@ -1157,7 +1488,7 @@ function App() {
                             <button onClick={() => handleDeleteBuild(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem', backgroundColor: '#d32f2f', borderColor: '#d32f2f', color: 'white' }}>{t('btn.delete')}</button>
                           </div>
                         ) : (
-                          <button onClick={() => handleOverwrite(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem', backgroundColor: 'var(--accent-color)', borderColor: 'var(--accent-color)', color: 'white' }}>{t('btn.overwrite')}</button>
+                          <button onClick={() => handleOverwrite(build.id)} className="btn" style={{ padding: '0.3rem 0.8rem', backgroundColor: 'var(--accent-color)', borderColor: 'var(--accent-color)', color: 'var(--accent-text-color)' }}>{t('btn.overwrite')}</button>
                         )}
                       </div>
                     ))
