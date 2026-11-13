@@ -75,7 +75,16 @@ export const translations: Record<Locale, Record<string, string>> = {
     'subtitle.shot_combinations': 'Minimum body part combinations required to kill.',
     'prob.shots_kill': '{0} Shots Kill',
     'part.any_part': 'Any Part',
-    'part.miss': 'Miss'
+    'part.miss': 'Miss',
+    'btn.import_image': 'Import Damage Image',
+    'btn.scanning': 'Scanning...',
+    'alert.scan_failed': 'Could not detect a valid CODM damage table in this image. Please import a clear screenshot of the weapon DAMAGE DETAIL table.',
+    'title.damage_ranges': 'Weapon Damage Ranges',
+    'app.select_range': 'Active Damage Range',
+    'range.simple': 'Range {0}',
+    'range.with_dist': 'Range {0} ({1} - {2}m)',
+    'table.body_part': 'Body Part',
+    'hint.paste_image': 'Tip: You can also press Ctrl+V to paste a screenshot directly.'
   },
   vi: {
     'alert.duplicate_damage': 'Lỗi: Một cấu hình với các chỉ số sát thương y hệt đã được lưu trước đó!',
@@ -137,7 +146,16 @@ export const translations: Record<Locale, Record<string, string>> = {
     'subtitle.shot_combinations': 'Tổ hợp bộ phận bắn trúng để đạt được STK tối thiểu',
     'prob.shots_kill': 'Hạ gục với {0} phát bắn',
     'part.any_part': 'Bộ phận bất kì',
-    'part.miss': 'Bắn hụt'
+    'part.miss': 'Bắn hụt',
+    'btn.import_image': 'Import ảnh sát thương',
+    'btn.scanning': 'Đang quét ảnh...',
+    'alert.scan_failed': 'Không nhận diện được bảng sát thương hợp lệ trong ảnh. Vui lòng chọn ảnh chụp rõ bảng DAMAGE DETAIL trong game.',
+    'title.damage_ranges': 'Bảng sát thương theo tầm bắn',
+    'app.select_range': 'Tầm bắn đang hiển thị',
+    'range.simple': 'Tầm {0}',
+    'range.with_dist': 'Tầm {0} ({1} - {2}m)',
+    'table.body_part': 'Bộ phận',
+    'hint.paste_image': 'Mẹo: Bạn có thể nhấn Ctrl+V để dán trực tiếp ảnh chụp màn hình.'
   },
   th: {
     'alert.duplicate_damage': 'ข้อผิดพลาด: มีการตั้งค่าความเสียหายนี้อยู่แล้ว!',
@@ -199,7 +217,16 @@ export const translations: Record<Locale, Record<string, string>> = {
     'subtitle.shot_combinations': 'รูปแบบส่วนของร่างกายที่จำเป็นในการฆ่า',
     'prob.shots_kill': 'ฆ่าด้วย {0} นัด',
     'part.any_part': 'ส่วนใดก็ได้',
-    'part.miss': 'ยิงพลาด'
+    'part.miss': 'ยิงพลาด',
+    'btn.import_image': 'นำเข้ารูปตารางดาเมจ',
+    'btn.scanning': 'กำลังสแกน...',
+    'alert.scan_failed': 'ไม่พบตารางความเสียหายในรูปภาพนี้ โปรดใช้ภาพหน้าจอตาราง DAMAGE DETAIL ที่ชัดเจน',
+    'title.damage_ranges': 'ความเสียหายตามระยะยิง',
+    'app.select_range': 'ระยะยิงที่แสดงผล',
+    'range.simple': 'ระยะที่ {0}',
+    'range.with_dist': 'ระยะที่ {0} ({1} - {2}m)',
+    'table.body_part': 'ส่วนร่างกาย',
+    'hint.paste_image': 'เคล็ดลับ: กด Ctrl+V เพื่อวางภาพหน้าจอได้ทันที'
   },
   zh: {
     'alert.duplicate_damage': '错误：已存在具有相同伤害配置的方案！',
@@ -261,7 +288,16 @@ export const translations: Record<Locale, Record<string, string>> = {
     'subtitle.shot_combinations': '击杀所需的最少部位组合',
     'prob.shots_kill': '{0} 枪击杀',
     'part.any_part': '任意部位',
-    'part.miss': '空枪'
+    'part.miss': '空枪',
+    'btn.import_image': '导入伤害面板图片',
+    'btn.scanning': '正在识别...',
+    'alert.scan_failed': '未能从图片中识别出有效的伤害表格，请上传清晰的武器伤害详情截图。',
+    'title.damage_ranges': '各射程部位伤害表',
+    'app.select_range': '当前显示射程',
+    'range.simple': '射程 {0}',
+    'range.with_dist': '射程 {0} ({1} - {2}m)',
+    'table.body_part': '部位',
+    'hint.paste_image': '提示：您也可以直接按 Ctrl+V 粘贴截图。'
   },
   ja: {
     'alert.duplicate_damage': 'エラー：同じダメージ設定のビルドが既に存在します！',
@@ -323,7 +359,16 @@ export const translations: Record<Locale, Record<string, string>> = {
     'subtitle.shot_combinations': 'キルに必要な最小の部位組み合わせ',
     'prob.shots_kill': '{0} 発キル',
     'part.any_part': '任意の部位',
-    'part.miss': '外れ'
+    'part.miss': '外れ',
+    'btn.import_image': 'ダメージ表画像を読み込む',
+    'btn.scanning': 'スキャン中...',
+    'alert.scan_failed': '画像から有効なダメージ表を検出できませんでした。鮮明なスクリーンショットを選択してください。',
+    'title.damage_ranges': '射程別ダメージ表',
+    'app.select_range': '表示する射程',
+    'range.simple': '射程 {0}',
+    'range.with_dist': '射程 {0} ({1} - {2}m)',
+    'table.body_part': '部位',
+    'hint.paste_image': 'ヒント: Ctrl+V でスクリーンショットを直接貼り付けることもできます。'
   },
   ko: {
     'alert.duplicate_damage': '오류: 동일한 데미지 설정이 이미 존재합니다!',
@@ -385,7 +430,16 @@ export const translations: Record<Locale, Record<string, string>> = {
     'subtitle.shot_combinations': '킬에 필요한 최소 부위 조합',
     'prob.shots_kill': '{0}발 킬',
     'part.any_part': '모든 부위',
-    'part.miss': '빗나감'
+    'part.miss': '빗나감',
+    'btn.import_image': '데미지 표 이미지 가져오기',
+    'btn.scanning': '스캔 중...',
+    'alert.scan_failed': '이미지에서 유효한 데미지 표를 찾을 수 없습니다. 선명한 스크린샷을 선택해 주세요.',
+    'title.damage_ranges': '사거리별 데미지 표',
+    'app.select_range': '표시할 사거리',
+    'range.simple': '사거리 {0}',
+    'range.with_dist': '사거리 {0} ({1} - {2}m)',
+    'table.body_part': '부위',
+    'hint.paste_image': '팁: Ctrl+V를 눌러 스크린샷을 직접 붙여넣을 수도 있습니다.'
   },
   es: {
     'alert.duplicate_damage': 'Error: ¡Ya existe una configuración con exactamente los mismos valores de daño!',
@@ -447,7 +501,16 @@ export const translations: Record<Locale, Record<string, string>> = {
     'subtitle.shot_combinations': 'Combinaciones mínimas de partes para matar.',
     'prob.shots_kill': 'Baja con {0} Tiros',
     'part.any_part': 'Cualquier Parte',
-    'part.miss': 'Fallo'
+    'part.miss': 'Fallo',
+    'btn.import_image': 'Importar Imagen de Daño',
+    'btn.scanning': 'Escaneando...',
+    'alert.scan_failed': 'No se pudo detectar una tabla de daño válida en esta imagen. Importa una captura clara.',
+    'title.damage_ranges': 'Rangos de Daño del Arma',
+    'app.select_range': 'Rango de Daño Activo',
+    'range.simple': 'Rango {0}',
+    'range.with_dist': 'Rango {0} ({1} - {2}m)',
+    'table.body_part': 'Parte',
+    'hint.paste_image': 'Consejo: También puedes presionar Ctrl+V para pegar una captura directamente.'
   },
   pt: {
     'alert.duplicate_damage': 'Erro: Uma configuração com os mesmos valores de dano já existe!',
@@ -509,7 +572,16 @@ export const translations: Record<Locale, Record<string, string>> = {
     'subtitle.shot_combinations': 'Combinações mínimas de partes para matar.',
     'prob.shots_kill': 'Abate com {0} Tiros',
     'part.any_part': 'Qualquer Parte',
-    'part.miss': 'Erro'
+    'part.miss': 'Erro',
+    'btn.import_image': 'Importar Imagem de Dano',
+    'btn.scanning': 'Escaneando...',
+    'alert.scan_failed': 'Não foi possível detectar uma tabela de dano válida nesta imagem. Importe uma captura nítida.',
+    'title.damage_ranges': 'Alcances de Dano da Arma',
+    'app.select_range': 'Alcance de Dano Ativo',
+    'range.simple': 'Alcance {0}',
+    'range.with_dist': 'Alcance {0} ({1} - {2}m)',
+    'table.body_part': 'Parte',
+    'hint.paste_image': 'Dica: Você também pode pressionar Ctrl+V para colar uma captura diretamente.'
   },
   ms: {
     'alert.duplicate_damage': 'Ralat: Konfigurasi dengan kerosakan yang sama sudah wujud!',
@@ -571,7 +643,16 @@ export const translations: Record<Locale, Record<string, string>> = {
     'subtitle.shot_combinations': 'Kombinasi minimum bahagian untuk membunuh.',
     'prob.shots_kill': 'Bunuh dengan {0} Tembakan',
     'part.any_part': 'Mana-mana Bahagian',
-    'part.miss': 'Tersasar'
+    'part.miss': 'Tersasar',
+    'btn.import_image': 'Import Imej Kerosakan',
+    'btn.scanning': 'Mengimbas...',
+    'alert.scan_failed': 'Tidak dapat mengesan jadual kerosakan yang sah dalam imej ini. Sila import tangkapan skrin yang jelas.',
+    'title.damage_ranges': 'Julat Kerosakan Senjata',
+    'app.select_range': 'Julat Kerosakan Aktif',
+    'range.simple': 'Julat {0}',
+    'range.with_dist': 'Julat {0} ({1} - {2}m)',
+    'table.body_part': 'Bahagian',
+    'hint.paste_image': 'Tip: Anda juga boleh menekan Ctrl+V untuk menampal tangkapan skrin.'
   },
   id: {
     'alert.duplicate_damage': 'Kesalahan: Konfigurasi dengan kerusakan yang sama sudah ada!',
@@ -633,7 +714,16 @@ export const translations: Record<Locale, Record<string, string>> = {
     'subtitle.shot_combinations': 'Kombinasi minimal bagian untuk membunuh.',
     'prob.shots_kill': 'Membunuh dengan {0} Tembakan',
     'part.any_part': 'Bagian Mana Pun',
-    'part.miss': 'Meleset'
+    'part.miss': 'Meleset',
+    'btn.import_image': 'Impor Gambar Kerusakan',
+    'btn.scanning': 'Memindai...',
+    'alert.scan_failed': 'Tidak dapat mendeteksi tabel kerusakan yang valid pada gambar ini. Harap impor tangkapan layar yang jelas.',
+    'title.damage_ranges': 'Jarak Kerusakan Senjata',
+    'app.select_range': 'Jarak Kerusakan Aktif',
+    'range.simple': 'Jarak {0}',
+    'range.with_dist': 'Jarak {0} ({1} - {2}m)',
+    'table.body_part': 'Bagian',
+    'hint.paste_image': 'Tips: Anda juga dapat menekan Ctrl+V untuk menempelkan tangkapan layar.'
   },
   hi: {
     'alert.duplicate_damage': 'त्रुटि: समान डैमेज मानों वाला कॉन्फ़िगरेशन पहले से मौजूद है!',
@@ -695,6 +785,15 @@ export const translations: Record<Locale, Record<string, string>> = {
     'subtitle.shot_combinations': 'मारने के लिए आवश्यक न्यूनतम शरीर भाग संयोजन।',
     'prob.shots_kill': '{0} शॉट्स में किल',
     'part.any_part': 'कोई भी भाग',
-    'part.miss': 'चूक'
+    'part.miss': 'चूक',
+    'btn.import_image': 'डैमेज तालिका इमेज इम्पोर्ट करें',
+    'btn.scanning': 'स्कैन हो रहा है...',
+    'alert.scan_failed': 'इस इमेज में कोई मान्य डैमेज तालिका नहीं मिली। कृपया स्पष्ट स्क्रीनशॉट चुनें।',
+    'title.damage_ranges': 'हथियार डैमेज रेंज',
+    'app.select_range': 'सक्रिय डैमेज रेंज',
+    'range.simple': 'रेंज {0}',
+    'range.with_dist': 'रेंज {0} ({1} - {2}m)',
+    'table.body_part': 'शरीर का भाग',
+    'hint.paste_image': 'सुझाव: आप सीधे स्क्रीनशॉट पेस्ट करने के लिए Ctrl+V भी दबा सकते हैं।'
   }
 };

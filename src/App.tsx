@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { CharacterModel, bodyPartsList } from './components/CharacterModel';
+import { CharacterModel, bodyPartsList, partConfigs } from './components/CharacterModel';
 import type { PartId } from './components/CharacterModel';
 import { calculateKillProbabilities, calculateCombinations } from './utils/ttkMath';
 import type { BodyPartStats } from './utils/ttkMath';
+import { scanDamageImageFile, DAMAGE_TABLE_PARTS, type ExtractedRange } from './utils/imageScanner';
 import { translations, languageNames, type Locale } from './locales';
 import './index.css';
 
@@ -110,6 +111,8 @@ type SavedBuild = {
   fireInterval?: string;
   burstDelay?: string;
   burstCount?: string;
+  extractedRanges?: ExtractedRange[];
+  selectedRangeIndex?: number;
 };
 
 function App() {
@@ -152,6 +155,28 @@ function App() {
     };
   });
 
+  const [extractedRanges, setExtractedRanges] = useState<ExtractedRange[]>(() => {
+    const saved = localStorage.getItem('currentExtractedRanges');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
+
+  const [selectedRangeIndex, setSelectedRangeIndex] = useState<number>(() => {
+    const saved = localStorage.getItem('currentSelectedRangeIndex');
+    const parsed = saved ? parseInt(saved, 10) : 0;
+    return !isNaN(parsed) && parsed >= 0 ? parsed : 0;
+  });
+
+  const [isScanning, setIsScanning] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // Auto-save inputs
   useEffect(() => {
     localStorage.setItem('currentHealth', health.toString());
@@ -162,7 +187,9 @@ function App() {
     localStorage.setItem('currentBurstCount', burstCount);
     localStorage.setItem('currentMissedShots', missedShots.toString());
     localStorage.setItem('currentDamages', JSON.stringify(damages));
-  }, [health, mode, fireMode, fireInterval, burstDelay, burstCount, missedShots, damages]);
+    localStorage.setItem('currentExtractedRanges', JSON.stringify(extractedRanges));
+    localStorage.setItem('currentSelectedRangeIndex', selectedRangeIndex.toString());
+  }, [health, mode, fireMode, fireInterval, burstDelay, burstCount, missedShots, damages, extractedRanges, selectedRangeIndex]);
 
   const [activePart, setActivePart] = useState<PartId | null>(null);
 
@@ -281,7 +308,9 @@ function App() {
         fireMode,
         fireInterval,
         burstDelay: fireMode === 'burst' ? burstDelay : '',
-        burstCount: fireMode === 'burst' ? burstCount : ''
+        burstCount: fireMode === 'burst' ? burstCount : '',
+        extractedRanges: extractedRanges.length > 0 ? extractedRanges.map(r => ({ ...r, damages: { ...r.damages } })) : undefined,
+        selectedRangeIndex: extractedRanges.length > 0 ? selectedRangeIndex : undefined,
       }
     ]);
     setModalState('none');
@@ -294,7 +323,9 @@ function App() {
       fireMode,
       fireInterval,
       burstDelay: fireMode === 'burst' ? burstDelay : '',
-      burstCount: fireMode === 'burst' ? burstCount : ''
+      burstCount: fireMode === 'burst' ? burstCount : '',
+      extractedRanges: extractedRanges.length > 0 ? extractedRanges.map(r => ({ ...r, damages: { ...r.damages } })) : undefined,
+      selectedRangeIndex: extractedRanges.length > 0 ? selectedRangeIndex : undefined,
     } : b));
     setModalState('none');
   };
@@ -330,6 +361,19 @@ function App() {
     setFireInterval(build.fireInterval || '');
     setBurstDelay(build.burstDelay || '');
     setBurstCount(build.burstCount || '');
+    if (build.extractedRanges && build.extractedRanges.length > 0) {
+      setExtractedRanges(build.extractedRanges.map(r => ({ ...r, damages: { ...r.damages } })));
+      setSelectedRangeIndex(
+        typeof build.selectedRangeIndex === 'number' &&
+          build.selectedRangeIndex >= 0 &&
+          build.selectedRangeIndex < build.extractedRanges.length
+          ? build.selectedRangeIndex
+          : 0
+      );
+    } else {
+      setExtractedRanges([]);
+      setSelectedRangeIndex(0);
+    }
     setModalState('none');
   };
 
@@ -343,6 +387,61 @@ function App() {
     setFireInterval('');
     setBurstDelay('');
     setBurstCount('');
+    setExtractedRanges([]);
+    setSelectedRangeIndex(0);
+  };
+
+  const handleProcessImageFile = async (file: File | Blob) => {
+    setIsScanning(true);
+    try {
+      const result = await scanDamageImageFile(file);
+      if (!result || result.ranges.length === 0) {
+        setDialogConfig({
+          isOpen: true,
+          type: 'alert',
+          message: t('alert.scan_failed'),
+        });
+        return;
+      }
+      setExtractedRanges(result.ranges);
+      setSelectedRangeIndex(0);
+      setDamages({ ...result.ranges[0].damages });
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleProcessImageFile(file);
+    }
+    e.target.value = '';
+  };
+
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.startsWith('image/')) {
+          const blob = items[i].getAsFile();
+          if (blob) {
+            e.preventDefault();
+            handleProcessImageFile(blob);
+            break;
+          }
+        }
+      }
+    };
+    window.addEventListener('paste', handlePaste);
+    return () => window.removeEventListener('paste', handlePaste);
+  });
+
+  const handleSelectRange = (idx: number) => {
+    if (idx < 0 || idx >= extractedRanges.length) return;
+    setSelectedRangeIndex(idx);
+    setDamages({ ...extractedRanges[idx].damages });
   };
 
   const handleModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -361,6 +460,14 @@ function App() {
         ...prev,
         [partId]: value
       }));
+      setExtractedRanges(prev => {
+        if (prev.length === 0 || !prev[selectedRangeIndex]) return prev;
+        return prev.map((r, i) =>
+          i === selectedRangeIndex
+            ? { ...r, damages: { ...r.damages, [partId]: value } }
+            : r
+        );
+      });
     }
   };
 
@@ -674,14 +781,115 @@ function App() {
 
           <div className="panel" style={{ marginBottom: '2rem' }}>
             <h2>{t('app.quick_actions')}</h2>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileInputChange}
+              style={{ display: 'none' }}
+            />
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="btn btn-import-image"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isScanning}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                {isScanning ? t('btn.scanning') : t('btn.import_image')}
+              </button>
               <button className="btn" onClick={handleSaveDamages}>{t('btn.save_build')}</button>
               <button className="btn" onClick={() => setModalState('load')} disabled={savedBuilds.length === 0}>
                 {t('btn.load_build')} ({savedBuilds.length})
               </button>
               <button className="btn" onClick={handleClearDamages}>{t('btn.clear_all')}</button>
             </div>
+            <p className="import-hint">{t('hint.paste_image')}</p>
           </div>
+
+          {extractedRanges.length > 0 && (
+            <div className="panel" style={{ marginBottom: '2rem' }}>
+              <h2>{t('title.damage_ranges')}</h2>
+              <div className="input-group" style={{ marginBottom: '1.2rem' }}>
+                <label>{t('app.select_range')}</label>
+                <div className="custom-select-wrapper">
+                  <select
+                    value={selectedRangeIndex}
+                    onChange={(e) => handleSelectRange(parseInt(e.target.value, 10))}
+                    className="custom-select"
+                  >
+                    {extractedRanges.map((r, idx) => (
+                      <option key={r.rangeIndex} value={idx}>
+                        {r.from !== undefined && r.to !== undefined
+                          ? t('range.with_dist', r.rangeIndex, r.from, r.to)
+                          : t('range.simple', r.rangeIndex)}
+                      </option>
+                    ))}
+                  </select>
+                  <svg className="select-arrow-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+              </div>
+
+              <div className="damage-range-table-wrapper">
+                <table className="damage-range-table">
+                  <thead>
+                    <tr>
+                      <th>{t('table.body_part')}</th>
+                      {extractedRanges.map((r, idx) => {
+                        const isActive = idx === selectedRangeIndex;
+                        return (
+                          <th
+                            key={r.rangeIndex}
+                            className={`range-col-header ${isActive ? 'active' : ''}`}
+                            onClick={() => handleSelectRange(idx)}
+                          >
+                            <div className="range-col-title">{t('range.simple', r.rangeIndex)}</div>
+                            {r.from !== undefined && r.to !== undefined && (
+                              <div className="range-col-dist">{r.from} - {r.to}m</div>
+                            )}
+                          </th>
+                        );
+                      })}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {DAMAGE_TABLE_PARTS.map((partId, rowIdx) => {
+                      const partColor = partConfigs[partId]?.color || '#ffffff';
+                      return (
+                        <tr key={partId}>
+                          <td className="part-name-cell">
+                            <span className="part-row-badge">{rowIdx + 1}</span>
+                            <span style={{ color: partColor, fontWeight: 700 }}>
+                              {t(`part.${partId}`)}
+                            </span>
+                          </td>
+                          {extractedRanges.map((r, idx) => {
+                            const isActive = idx === selectedRangeIndex;
+                            return (
+                              <td
+                                key={r.rangeIndex}
+                                className={`range-val-cell ${isActive ? 'active' : ''}`}
+                                style={{ color: partColor }}
+                                onClick={() => handleSelectRange(idx)}
+                              >
+                                {r.damages[partId] || '--'}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           <div className="panel" style={{ padding: '1rem' }}>
             <h2 style={{ padding: '0 1rem' }}>{t('title.character_model')}</h2>
