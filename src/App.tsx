@@ -256,6 +256,7 @@ function App() {
     }
   });
   const [modalState, setModalState] = useState<'none' | 'load' | 'save' | 'import' | 'chart'>('none');
+  const [chartCopied, setChartCopied] = useState<boolean>(false);
   const [isDraggingImage, setIsDraggingImage] = useState<boolean>(false);
   const [newBuildName, setNewBuildName] = useState<string>('');
 
@@ -587,6 +588,272 @@ function App() {
       })
       .filter((item): item is NonNullable<typeof item> => item !== null && item.levels.length > 0);
   }, [extractedRanges, isReady, damages, mode, health, missedShots, hasValidTiming, fireMode, fiNum, bdNum, bcNum]);
+
+  const handleCopyChart = async () => {
+    if (rangeChartData.length === 0) return;
+
+    try {
+      const scale = 2;
+      const canvasW = 880;
+      const canvasH = 540;
+      const canvas = document.createElement('canvas');
+      canvas.width = canvasW * scale;
+      canvas.height = canvasH * scale;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      ctx.scale(scale, scale);
+
+      const fontFamily = getComputedStyle(document.body).fontFamily || "'LF Refrigerator Deluxe', sans-serif";
+
+      // Outer background
+      ctx.fillStyle = '#181a1f';
+      ctx.fillRect(0, 0, canvasW, canvasH);
+
+      // Title
+      ctx.fillStyle = '#ff9800';
+      ctx.font = `700 24px ${fontFamily}`;
+      ctx.textBaseline = 'middle';
+      ctx.textAlign = 'left';
+      ctx.fillText(t('title.ttk_chart'), 20, 30);
+
+      // Legend box
+      const legX = 20;
+      const legY = 52;
+      const legW = 840;
+      const legH = 40;
+      ctx.fillStyle = '#22252a';
+      ctx.strokeStyle = '#333842';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(legX, legY, legW, legH, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      const legendItems = [
+        { color: '#00e5ff', label: '100%' },
+        { color: '#00e676', label: '≥ 70%' },
+        { color: '#ffd600', label: '≥ 50%' },
+        { color: '#ff9100', label: '≥ 20%' },
+        { color: '#ff4d4d', label: '< 20%' },
+      ];
+      let curLegX = legX + 18;
+      const legCenterY = legY + legH / 2;
+      ctx.font = `700 17px ${fontFamily}`;
+      for (const item of legendItems) {
+        ctx.fillStyle = item.color;
+        ctx.beginPath();
+        ctx.arc(curLegX + 6, legCenterY, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'left';
+        ctx.fillText(item.label, curLegX + 18, legCenterY + 1);
+        curLegX += 18 + ctx.measureText(item.label).width + 26;
+      }
+
+      // Chart container box
+      const chartX = 20;
+      const chartY = 104;
+      const svgW = 840;
+      const svgH = 416;
+      ctx.fillStyle = '#121418';
+      ctx.strokeStyle = '#333842';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(chartX, chartY, svgW, svgH, 8);
+      ctx.fill();
+      ctx.stroke();
+
+      // Chart coordinate system inside (chartX, chartY)
+      ctx.save();
+      ctx.translate(chartX, chartY);
+
+      const allYVals = rangeChartData.flatMap(d => d.levels.map(l => l.yVal));
+      const uniqueYVals = Array.from(new Set(allYVals)).sort((a, b) => a - b);
+      const minRaw = Math.min(...allYVals);
+      const maxRaw = Math.max(...allYVals);
+      const span = Math.max(hasValidTiming ? 80 : 2, maxRaw - minRaw);
+      const yMin = Math.max(0, minRaw - span * 0.25);
+      const yMax = maxRaw + span * 0.25;
+      const yRange = Math.max(1e-6, yMax - yMin);
+
+      const padL = 78;
+      const padR = 24;
+      const padT = 40;
+      const padB = 68;
+      const plotW = svgW - padL - padR;
+      const plotH = svgH - padT - padB;
+      const nCols = rangeChartData.length;
+      const colW = plotW / nCols;
+      const pillW = Math.min(132, colW - 10);
+
+      const getY = (val: number) => padT + plotH - ((val - yMin) / yRange) * plotH;
+
+      // Active range highlight
+      if (extractedRanges.length > 1) {
+        rangeChartData.forEach((col, ci) => {
+          if (col.idx !== selectedRangeIndex) return;
+          const x0 = padL + ci * colW;
+          ctx.fillStyle = 'rgba(255, 152, 0, 0.08)';
+          ctx.fillRect(x0, padT, colW, plotH);
+        });
+      }
+
+      // Horizontal grid lines & Y-axis labels
+      uniqueYVals.forEach(yv => {
+        const py = getY(yv);
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(padL, py);
+        ctx.lineTo(padL + plotW, py);
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.font = `700 18px ${fontFamily}`;
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        const yLabel = hasValidTiming ? `${yv}ms` : `${yv}${t('table.shots_suffix')}`;
+        ctx.fillText(yLabel, padL - 10, py);
+      });
+
+      // Vertical range dividers & X-axis labels
+      rangeChartData.forEach((col, ci) => {
+        const x0 = padL + ci * colW;
+        const x1 = x0 + colW;
+        const xMid = (x0 + x1) / 2;
+        const isSelected = extractedRanges.length > 1 && col.idx === selectedRangeIndex;
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x0, padT);
+        ctx.lineTo(x0, padT + plotH);
+        ctx.stroke();
+
+        if (ci === nCols - 1) {
+          ctx.beginPath();
+          ctx.moveTo(x1, padT);
+          ctx.lineTo(x1, padT + plotH);
+          ctx.stroke();
+        }
+
+        ctx.fillStyle = isSelected ? '#ff9800' : '#ffffff';
+        ctx.font = `700 19px ${fontFamily}`;
+        ctx.textAlign = 'middle' as CanvasTextAlign;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'alphabetic';
+        ctx.fillText(t('range.simple', col.rangeIndex), xMid, padT + plotH + 28);
+
+        if (col.from !== undefined && col.to !== undefined) {
+          ctx.fillStyle = 'rgba(255,255,255,0.75)';
+          ctx.font = `400 16.5px ${fontFamily}`;
+          ctx.fillText(`${col.from} - ${col.to}m`, xMid, padT + plotH + 50);
+        }
+      });
+
+      // Baseline
+      ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(padL, padT + plotH);
+      ctx.lineTo(padL + plotW, padT + plotH);
+      ctx.stroke();
+
+      // Vertical step connectors between adjacent ranges
+      rangeChartData.slice(0, -1).forEach((col, ci) => {
+        const nextCol = rangeChartData[ci + 1];
+        const xBound = padL + (ci + 1) * colW;
+        col.levels.forEach((lvl, li) => {
+          const target =
+            li === col.levels.length - 1
+              ? nextCol.levels[nextCol.levels.length - 1]
+              : nextCol.levels.reduce(
+                  (best, cand) =>
+                    Math.abs(cand.cumulProb - lvl.cumulProb) < Math.abs(best.cumulProb - lvl.cumulProb)
+                      ? cand
+                      : best,
+                  nextCol.levels[0]
+                );
+          if (!target) return;
+          const y1 = getY(lvl.yVal);
+          const y2 = getY(target.yVal);
+          if (Math.abs(y1 - y2) < 0.5) return;
+
+          ctx.save();
+          ctx.strokeStyle = lvl.color;
+          ctx.lineWidth = 2.2;
+          ctx.globalAlpha = 0.75;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(xBound, y1);
+          ctx.lineTo(xBound, y2);
+          ctx.stroke();
+          ctx.restore();
+        });
+      });
+
+      // Horizontal TTK lines & labels per range
+      rangeChartData.forEach((col, ci) => {
+        const x0 = padL + ci * colW;
+        const x1 = x0 + colW;
+        const xMid = (x0 + x1) / 2;
+
+        col.levels.forEach(lvl => {
+          const py = getY(lvl.yVal);
+          const pctStr = `${parseFloat(lvl.cumulProb.toFixed(1))}%`;
+          const labelText = hasValidTiming
+            ? `${lvl.yVal}ms (${pctStr})`
+            : `${lvl.yVal}${t('table.shots_suffix')} (${pctStr})`;
+
+          // Horizontal line
+          ctx.strokeStyle = lvl.color;
+          ctx.lineWidth = 4;
+          ctx.lineCap = 'butt';
+          ctx.beginPath();
+          ctx.moveTo(x0, py);
+          ctx.lineTo(x1, py);
+          ctx.stroke();
+
+          // Label pill
+          ctx.fillStyle = 'rgba(15, 17, 21, 0.92)';
+          ctx.strokeStyle = lvl.color;
+          ctx.lineWidth = 1.3;
+          ctx.beginPath();
+          ctx.roundRect(xMid - pillW / 2, py - 33, pillW, 26, 5);
+          ctx.fill();
+          ctx.stroke();
+
+          // Label text
+          ctx.fillStyle = lvl.color;
+          ctx.font = `700 17px ${fontFamily}`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'alphabetic';
+          ctx.fillText(labelText, xMid, py - 14);
+        });
+      });
+
+      ctx.restore();
+
+      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
+      if (!blob) return;
+
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'image/png': blob,
+        }),
+      ]);
+
+      setChartCopied(true);
+      setTimeout(() => setChartCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy chart to clipboard:', err);
+    }
+  };
 
   return (
     <div className="app-container">
@@ -1136,15 +1403,42 @@ function App() {
                       ? t('btn.load_build')
                       : t('btn.save_build')}
               </h2>
-              <button
-                className="close-btn"
-                onClick={() => {
-                  setIsDraggingImage(false);
-                  setModalState('none');
-                }}
-              >
-                &times;
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                {modalState === 'chart' && (
+                  <button
+                    type="button"
+                    className={`copy-chart-btn ${chartCopied ? 'copied' : ''}`}
+                    onClick={handleCopyChart}
+                  >
+                    {chartCopied ? (
+                      <>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        {t('btn.copied')}
+                      </>
+                    ) : (
+                      <>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        {t('btn.copy_chart')}
+                      </>
+                    )}
+                  </button>
+                )}
+                <button
+                  className="close-btn"
+                  onClick={() => {
+                    setIsDraggingImage(false);
+                    setChartCopied(false);
+                    setModalState('none');
+                  }}
+                >
+                  &times;
+                </button>
+              </div>
             </div>
 
             {modalState === 'chart' ? (
@@ -1372,16 +1666,13 @@ function App() {
                                 }}
                               >
                                 <line
-                                  x1={x0 + 3}
+                                  x1={x0}
                                   y1={py}
-                                  x2={x1 - 3}
+                                  x2={x1}
                                   y2={py}
                                   stroke={lvl.color}
                                   strokeWidth="4"
-                                  strokeLinecap="round"
                                 />
-                                <circle cx={x0 + 4} cy={py} r="4.5" fill={lvl.color} />
-                                <circle cx={x1 - 4} cy={py} r="4.5" fill={lvl.color} />
                                 <rect
                                   x={xMid - pillW / 2}
                                   y={py - 33}

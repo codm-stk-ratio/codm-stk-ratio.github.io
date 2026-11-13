@@ -761,6 +761,33 @@ input[type="number"] {
   font-family: inherit;
 }
 
+.copy-chart-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.85rem;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-color);
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.copy-chart-btn:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+.copy-chart-btn.copied {
+  border-color: #00e676;
+  color: #00e676;
+  background-color: rgba(0, 230, 118, 0.1);
+}
+
 @media (max-width: 900px) {
   .header h1 {
     font-size: 2.2rem;

@@ -90,7 +90,9 @@ export const translations: Record<Locale, Record<string, string>> = {
     'import.warning_crosshair': 'Avoid using virtual crosshair for the best experience.',
     'title.ttk_chart': 'TTK by Damage Range',
     'chart.enter_fire_interval': 'Showing STK (enter Fire Interval to view TTK in ms)',
-    'btn.show_chart': 'Show Chart'
+    'btn.show_chart': 'Show Chart',
+    'btn.copy_chart': 'Copy Chart',
+    'btn.copied': 'Copied!'
   },
   vi: {
     'alert.duplicate_damage': 'Lỗi: Một cấu hình với các chỉ số sát thương y hệt đã được lưu trước đó!',
@@ -167,7 +169,9 @@ export const translations: Record<Locale, Record<string, string>> = {
     'import.warning_crosshair': 'Tránh sử dụng tâm ảo (virtual crosshair) để có trải nghiệm tốt nhất.',
     'title.ttk_chart': 'Biểu đồ TTK theo tầm bắn',
     'chart.enter_fire_interval': 'Đang hiển thị số viên STK (nhập Thời gian nghỉ bắn để xem TTK theo ms)',
-    'btn.show_chart': 'Hiển thị biểu đồ'
+    'btn.show_chart': 'Hiển thị biểu đồ',
+    'btn.copy_chart': 'Sao chép biểu đồ',
+    'btn.copied': 'Đã sao chép!'
   },
   th: {
     'alert.duplicate_damage': 'ข้อผิดพลาด: มีการตั้งค่าความเสียหายนี้อยู่แล้ว!',
@@ -244,7 +248,9 @@ export const translations: Record<Locale, Record<string, string>> = {
     'import.warning_crosshair': 'หลีกเลี่ยงการใช้เป้าเล็งจำลอง (virtual crosshair) เพื่อประสบการณ์ที่ดีที่สุด',
     'title.ttk_chart': 'กราฟ TTK ตามระยะยิง',
     'chart.enter_fire_interval': 'แสดงจำนวนนัด STK (ป้อนเวลายิงเพื่อดู TTK เป็น ms)',
-    'btn.show_chart': 'แสดงกราฟ'
+    'btn.show_chart': 'แสดงกราฟ',
+    'btn.copy_chart': 'คัดลอกกราฟ',
+    'btn.copied': 'คัดลอกแล้ว!'
   },
   zh: {
     'alert.duplicate_damage': '错误：已存在具有相同伤害配置的方案！',
@@ -321,7 +327,9 @@ export const translations: Record<Locale, Record<string, string>> = {
     'import.warning_crosshair': '为获得最佳识别体验，请避免使用虚拟准星 (virtual crosshair)。',
     'title.ttk_chart': '各射程 TTK 曲线图',
     'chart.enter_fire_interval': '当前显示枪数 STK（输入射击间隔以查看 ms 单位的 TTK）',
-    'btn.show_chart': '显示图表'
+    'btn.show_chart': '显示图表',
+    'btn.copy_chart': '复制图表',
+    'btn.copied': '已复制！'
   },
   ja: {
     'alert.duplicate_damage': 'エラー：同じダメージ設定のビルドが既に存在します！',
@@ -398,7 +406,9 @@ export const translations: Record<Locale, Record<string, string>> = {
     'import.warning_crosshair': '最良の認識結果を得るため、仮想クロスヘア（virtual crosshair）の使用は避けてください。',
     'title.ttk_chart': '射程別 TTK グラフ',
     'chart.enter_fire_interval': '現在発数 (STK) を表示中（射撃間隔を入力すると TTK ms を表示）',
-    'btn.show_chart': 'グラフを表示'
+    'btn.show_chart': 'グラフを表示',
+    'btn.copy_chart': 'グラフをコピー',
+    'btn.copied': 'コピーしました！'
   },
   ko: {
     'alert.duplicate_damage': '오류: 동일한 데미지 설정이 이미 존재합니다!',
@@ -475,7 +485,9 @@ export const translations: Record<Locale, Record<string, string>> = {
     'import.warning_crosshair': '최상의 인식을 위해 가상 조준선(virtual crosshair) 사용을 피해 주세요.',
     'title.ttk_chart': '사거리별 TTK 그래프',
     'chart.enter_fire_interval': '현재 발수(STK) 표시 중 (발사 간격을 입력하면 TTK ms 표시)',
-    'btn.show_chart': '그래프 보기'
+    'btn.show_chart': '그래프 보기',
+    'btn.copy_chart': '그래프 복사',
+    'btn.copied': '복사됨!'
   },
   es: {
     'alert.duplicate_damage': 'Error: ¡Ya existe una configuración con exactamente los mismos valores de daño!',
@@ -552,7 +564,9 @@ export const translations: Record<Locale, Record<string, string>> = {
     'import.warning_crosshair': 'Evita usar mira virtual (virtual crosshair) para obtener la mejor experiencia.',
     'title.ttk_chart': 'Gráfico de TTK por Rango',
     'chart.enter_fire_interval': 'Mostrando tiros STK (ingresa el intervalo de disparo para ver TTK en ms)',
-    'btn.show_chart': 'Mostrar Gráfico'
+    'btn.show_chart': 'Mostrar Gráfico',
+    'btn.copy_chart': 'Copiar Gráfico',
+    'btn.copied': '¡Copiado!'
   },
   pt: {
     'alert.duplicate_damage': 'Erro: Uma configuração com os mesmos valores de dano já existe!',
@@ -629,7 +643,9 @@ export const translations: Record<Locale, Record<string, string>> = {
     'import.warning_crosshair': 'Evite usar mira virtual (virtual crosshair) para obter a melhor experiência.',
     'title.ttk_chart': 'Gráfico de TTK por Alcance',
     'chart.enter_fire_interval': 'Mostrando tiros STK (insira o intervalo de disparo para ver TTK em ms)',
-    'btn.show_chart': 'Mostrar Gráfico'
+    'btn.show_chart': 'Mostrar Gráfico',
+    'btn.copy_chart': 'Copiar Gráfico',
+    'btn.copied': 'Copiado!'
   },
   ms: {
     'alert.duplicate_damage': 'Ralat: Konfigurasi dengan kerosakan yang sama sudah wujud!',
@@ -706,7 +722,9 @@ export const translations: Record<Locale, Record<string, string>> = {
     'import.warning_crosshair': 'Elakkan menggunakan pejera maya (virtual crosshair) untuk pengalaman terbaik.',
     'title.ttk_chart': 'Graf TTK mengikut Julat',
     'chart.enter_fire_interval': 'Memaparkan STK (masukkan selang tembakan untuk melihat TTK dalam ms)',
-    'btn.show_chart': 'Paparkan Graf'
+    'btn.show_chart': 'Paparkan Graf',
+    'btn.copy_chart': 'Salin Graf',
+    'btn.copied': 'Disalin!'
   },
   id: {
     'alert.duplicate_damage': 'Kesalahan: Konfigurasi dengan kerusakan yang sama sudah ada!',
@@ -783,7 +801,9 @@ export const translations: Record<Locale, Record<string, string>> = {
     'import.warning_crosshair': 'Hindari penggunaan crosshair virtual (virtual crosshair) untuk pengalaman terbaik.',
     'title.ttk_chart': 'Grafik TTK berdasarkan Jarak',
     'chart.enter_fire_interval': 'Menampilkan STK (masukkan jeda tembakan untuk melihat TTK dalam ms)',
-    'btn.show_chart': 'Tampilkan Grafik'
+    'btn.show_chart': 'Tampilkan Grafik',
+    'btn.copy_chart': 'Salin Grafik',
+    'btn.copied': 'Tersalin!'
   },
   hi: {
     'alert.duplicate_damage': 'त्रुटि: समान डैमेज मानों वाला कॉन्फ़िगरेशन पहले से मौजूद है!',
@@ -860,6 +880,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     'import.warning_crosshair': 'सर्वोत्तम अनुभव के लिए वर्चुअल क्रॉसहेयर (virtual crosshair) का उपयोग करने से बचें।',
     'title.ttk_chart': 'रेंज के अनुसार TTK ग्राफ़',
     'chart.enter_fire_interval': 'STK दिखा रहा है (ms में TTK देखने के लिए फायर अंतराल दर्ज करें)',
-    'btn.show_chart': 'ग्राफ़ दिखाएँ'
+    'btn.show_chart': 'ग्राफ़ दिखाएँ',
+    'btn.copy_chart': 'ग्राफ़ कॉपी करें',
+    'btn.copied': 'कॉपी हो गया!'
   }
 };
