@@ -86,7 +86,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     'table.body_part': 'Body Part',
     'hint.paste_image': 'Tip: You can also press Ctrl+V to paste a screenshot directly.',
     'import.drop_or_paste': 'Drag & drop an image here, or press Ctrl + V to paste',
-    'import.click_to_browse': 'Or click here to select an image file from your device'
+    'import.click_to_browse': 'Or click here to select an image file from your device',
+    'import.warning_crosshair': 'Avoid using virtual crosshair for the best experience.'
   },
   vi: {
     'alert.duplicate_damage': 'Lỗi: Một cấu hình với các chỉ số sát thương y hệt đã được lưu trước đó!',
@@ -159,7 +160,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     'table.body_part': 'Bộ phận',
     'hint.paste_image': 'Mẹo: Bạn có thể nhấn Ctrl+V để dán trực tiếp ảnh chụp màn hình.',
     'import.drop_or_paste': 'Kéo thả ảnh vào đây hoặc nhấn Ctrl + V để dán ảnh',
-    'import.click_to_browse': 'Hoặc nhấn vào khung này để chọn tệp ảnh từ máy'
+    'import.click_to_browse': 'Hoặc nhấn vào khung này để chọn tệp ảnh từ máy',
+    'import.warning_crosshair': 'Tránh sử dụng tâm ảo (virtual crosshair) để có trải nghiệm tốt nhất.'
   },
   th: {
     'alert.duplicate_damage': 'ข้อผิดพลาด: มีการตั้งค่าความเสียหายนี้อยู่แล้ว!',
@@ -232,7 +234,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     'table.body_part': 'ส่วนร่างกาย',
     'hint.paste_image': 'เคล็ดลับ: กด Ctrl+V เพื่อวางภาพหน้าจอได้ทันที',
     'import.drop_or_paste': 'ลากและวางรูปภาพที่นี่ หรือกด Ctrl + V เพื่อวาง',
-    'import.click_to_browse': 'หรือคลิกที่นี่เพื่อเลือกไฟล์รูปภาพจากอุปกรณ์'
+    'import.click_to_browse': 'หรือคลิกที่นี่เพื่อเลือกไฟล์รูปภาพจากอุปกรณ์',
+    'import.warning_crosshair': 'หลีกเลี่ยงการใช้เป้าเล็งจำลอง (virtual crosshair) เพื่อประสบการณ์ที่ดีที่สุด'
   },
   zh: {
     'alert.duplicate_damage': '错误：已存在具有相同伤害配置的方案！',
@@ -305,7 +308,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     'table.body_part': '部位',
     'hint.paste_image': '提示：您也可以直接按 Ctrl+V 粘贴截图。',
     'import.drop_or_paste': '将图片拖放到此处，或按 Ctrl + V 粘贴',
-    'import.click_to_browse': '或点击此处从设备中选择图片文件'
+    'import.click_to_browse': '或点击此处从设备中选择图片文件',
+    'import.warning_crosshair': '为获得最佳识别体验，请避免使用虚拟准星 (virtual crosshair)。'
   },
   ja: {
     'alert.duplicate_damage': 'エラー：同じダメージ設定のビルドが既に存在します！',
@@ -378,7 +382,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     'table.body_part': '部位',
     'hint.paste_image': 'ヒント: Ctrl+V でスクリーンショットを直接貼り付けることもできます。',
     'import.drop_or_paste': 'ここに画像をドラッグ＆ドロップするか、Ctrl + V で貼り付け',
-    'import.click_to_browse': 'またはクリックして端末から画像ファイルを選択'
+    'import.click_to_browse': 'またはクリックして端末から画像ファイルを選択',
+    'import.warning_crosshair': '最良の認識結果を得るため、仮想クロスヘア（virtual crosshair）の使用は避けてください。'
   },
   ko: {
     'alert.duplicate_damage': '오류: 동일한 데미지 설정이 이미 존재합니다!',
@@ -451,7 +456,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     'table.body_part': '부위',
     'hint.paste_image': '팁: Ctrl+V를 눌러 스크린샷을 직접 붙여넣을 수도 있습니다.',
     'import.drop_or_paste': '여기에 이미지를 드래그 앤 드롭하거나 Ctrl + V를 눌러 붙여넣기',
-    'import.click_to_browse': '또는 여기를 클릭하여 기기에서 이미지 파일 선택'
+    'import.click_to_browse': '또는 여기를 클릭하여 기기에서 이미지 파일 선택',
+    'import.warning_crosshair': '최상의 인식을 위해 가상 조준선(virtual crosshair) 사용을 피해 주세요.'
   },
   es: {
     'alert.duplicate_damage': 'Error: ¡Ya existe una configuración con exactamente los mismos valores de daño!',
@@ -524,7 +530,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     'table.body_part': 'Parte',
     'hint.paste_image': 'Consejo: También puedes presionar Ctrl+V para pegar una captura directamente.',
     'import.drop_or_paste': 'Arrastra y suelta una imagen aquí, o presiona Ctrl + V para pegar',
-    'import.click_to_browse': 'O haz clic aquí para seleccionar un archivo de imagen'
+    'import.click_to_browse': 'O haz clic aquí para seleccionar un archivo de imagen',
+    'import.warning_crosshair': 'Evita usar mira virtual (virtual crosshair) para obtener la mejor experiencia.'
   },
   pt: {
     'alert.duplicate_damage': 'Erro: Uma configuração com os mesmos valores de dano já existe!',
@@ -597,7 +604,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     'table.body_part': 'Parte',
     'hint.paste_image': 'Dica: Você também pode pressionar Ctrl+V para colar uma captura diretamente.',
     'import.drop_or_paste': 'Arraste e solte uma imagem aqui, ou pressione Ctrl + V para colar',
-    'import.click_to_browse': 'Ou clique aqui para selecionar um arquivo de imagem'
+    'import.click_to_browse': 'Ou clique aqui para selecionar um arquivo de imagem',
+    'import.warning_crosshair': 'Evite usar mira virtual (virtual crosshair) para obter a melhor experiência.'
   },
   ms: {
     'alert.duplicate_damage': 'Ralat: Konfigurasi dengan kerosakan yang sama sudah wujud!',
@@ -670,7 +678,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     'table.body_part': 'Bahagian',
     'hint.paste_image': 'Tip: Anda juga boleh menekan Ctrl+V untuk menampal tangkapan skrin.',
     'import.drop_or_paste': 'Seret & lepas imej di sini, atau tekan Ctrl + V untuk menampal',
-    'import.click_to_browse': 'Atau klik di sini untuk memilih fail imej dari peranti'
+    'import.click_to_browse': 'Atau klik di sini untuk memilih fail imej dari peranti',
+    'import.warning_crosshair': 'Elakkan menggunakan pejera maya (virtual crosshair) untuk pengalaman terbaik.'
   },
   id: {
     'alert.duplicate_damage': 'Kesalahan: Konfigurasi dengan kerusakan yang sama sudah ada!',
@@ -743,7 +752,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     'table.body_part': 'Bagian',
     'hint.paste_image': 'Tips: Anda juga dapat menekan Ctrl+V untuk menempelkan tangkapan layar.',
     'import.drop_or_paste': 'Seret & lepas gambar di sini, atau tekan Ctrl + V untuk menempel',
-    'import.click_to_browse': 'Atau klik di sini untuk memilih file gambar dari perangkat'
+    'import.click_to_browse': 'Atau klik di sini untuk memilih file gambar dari perangkat',
+    'import.warning_crosshair': 'Hindari penggunaan crosshair virtual (virtual crosshair) untuk pengalaman terbaik.'
   },
   hi: {
     'alert.duplicate_damage': 'त्रुटि: समान डैमेज मानों वाला कॉन्फ़िगरेशन पहले से मौजूद है!',
@@ -816,6 +826,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     'table.body_part': 'शरीर का भाग',
     'hint.paste_image': 'सुझाव: आप सीधे स्क्रीनशॉट पेस्ट करने के लिए Ctrl+V भी दबा सकते हैं।',
     'import.drop_or_paste': 'यहाँ इमेज ड्रैग और ड्रॉप करें, या पेस्ट करने के लिए Ctrl + V दबाएँ',
-    'import.click_to_browse': 'या अपने डिवाइस से इमेज फ़ाइल चुनने के लिए यहाँ क्लिक करें'
+    'import.click_to_browse': 'या अपने डिवाइस से इमेज फ़ाइल चुनने के लिए यहाँ क्लिक करें',
+    'import.warning_crosshair': 'सर्वोत्तम अनुभव के लिए वर्चुअल क्रॉसहेयर (virtual crosshair) का उपयोग करने से बचें।'
   }
 };

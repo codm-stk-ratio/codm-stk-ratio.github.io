@@ -1056,52 +1056,62 @@ function App() {
             </div>
 
             {modalState === 'import' ? (
-              <div
-                className={`import-dropzone ${isDraggingImage ? 'dragging' : ''}`}
-                onClick={() => {
-                  if (!isScanning) fileInputRef.current?.click();
-                }}
-                onDragEnter={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setIsDraggingImage(true);
-                }}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  if (!isDraggingImage) setIsDraggingImage(true);
-                }}
-                onDragLeave={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  if (e.currentTarget.contains(e.relatedTarget as Node)) return;
-                  setIsDraggingImage(false);
-                }}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setIsDraggingImage(false);
-                  if (isScanning) return;
-                  const file = e.dataTransfer.files?.[0];
-                  if (file && file.type.startsWith('image/')) {
-                    handleProcessImageFile(file);
-                  }
-                }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="import-dropzone-icon">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                  <polyline points="21 15 16 10 5 21"></polyline>
-                </svg>
-                <p className="import-dropzone-title">
-                  {isScanning ? t('btn.scanning') : t('import.drop_or_paste')}
-                </p>
-                {!isScanning && (
-                  <p className="import-dropzone-sub">
-                    {t('import.click_to_browse')}
+              <>
+                <div className="import-warning-box">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="import-warning-icon">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                  <span>{t('import.warning_crosshair')}</span>
+                </div>
+                <div
+                  className={`import-dropzone ${isDraggingImage ? 'dragging' : ''}`}
+                  onClick={() => {
+                    if (!isScanning) fileInputRef.current?.click();
+                  }}
+                  onDragEnter={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsDraggingImage(true);
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!isDraggingImage) setIsDraggingImage(true);
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+                    setIsDraggingImage(false);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsDraggingImage(false);
+                    if (isScanning) return;
+                    const file = e.dataTransfer.files?.[0];
+                    if (file && file.type.startsWith('image/')) {
+                      handleProcessImageFile(file);
+                    }
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="import-dropzone-icon">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                  </svg>
+                  <p className="import-dropzone-title">
+                    {isScanning ? t('btn.scanning') : t('import.drop_or_paste')}
                   </p>
-                )}
-              </div>
+                  {!isScanning && (
+                    <p className="import-dropzone-sub">
+                      {t('import.click_to_browse')}
+                    </p>
+                  )}
+                </div>
+              </>
             ) : (
               <>
                 {modalState === 'save' && (
