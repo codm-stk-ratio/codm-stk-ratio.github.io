@@ -720,8 +720,8 @@ function App() {
 
       const padL = 78;
       const padR = 24;
-      const padT = 40;
-      const padB = 68;
+      const padT = 68;
+      const padB = 24;
       const plotW = svgW - padL - padR;
       const plotH = svgH - padT - padB;
       const nCols = rangeChartData.length;
@@ -762,12 +762,13 @@ function App() {
         ctx.fillText(yLabel, padL - 10, py);
       });
 
-      // Vertical range dividers & X-axis labels
+      // Vertical range dividers & Top X-axis labels
       rangeChartData.forEach((col, ci) => {
         const x0 = padL + ci * colW;
         const x1 = x0 + colW;
         const xMid = (x0 + x1) / 2;
         const isSelected = extractedRanges.length > 1 && col.idx === selectedRangeIndex;
+        const hasDist = col.from !== undefined && col.to !== undefined;
 
         ctx.strokeStyle = 'rgba(255,255,255,0.18)';
         ctx.lineWidth = 1;
@@ -785,24 +786,23 @@ function App() {
 
         ctx.fillStyle = isSelected ? '#ff9800' : '#ffffff';
         ctx.font = `700 19px ${fontFamily}`;
-        ctx.textAlign = 'middle' as CanvasTextAlign;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'alphabetic';
-        ctx.fillText(t('range.simple', col.rangeIndex), xMid, padT + plotH + 28);
+        ctx.fillText(t('range.simple', col.rangeIndex), xMid, hasDist ? 26 : 38);
 
-        if (col.from !== undefined && col.to !== undefined) {
+        if (hasDist) {
           ctx.fillStyle = 'rgba(255,255,255,0.75)';
           ctx.font = `400 16.5px ${fontFamily}`;
-          ctx.fillText(`${col.from} - ${col.to}m`, xMid, padT + plotH + 50);
+          ctx.fillText(`${col.from} - ${col.to}m`, xMid, 49);
         }
       });
 
-      // Baseline
+      // Top axis line
       ctx.strokeStyle = 'rgba(255,255,255,0.35)';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.moveTo(padL, padT + plotH);
-      ctx.lineTo(padL + plotW, padT + plotH);
+      ctx.moveTo(padL, padT);
+      ctx.lineTo(padL + plotW, padT);
       ctx.stroke();
 
       // Vertical step connectors between adjacent ranges
@@ -1554,8 +1554,8 @@ function App() {
                 const svgH = 480;
                 const padL = 78;
                 const padR = 24;
-                const padT = 40;
-                const padB = 68;
+                const padT = 68;
+                const padB = 24;
                 const plotW = svgW - padL - padR;
                 const plotH = svgH - padT - padB;
                 const nCols = rangeChartData.length;
@@ -1672,12 +1672,13 @@ function App() {
                           );
                         })}
 
-                        {/* Vertical range dividers & X-axis labels */}
+                        {/* Vertical range dividers & Top X-axis labels */}
                         {rangeChartData.map((col, ci) => {
                           const x0 = padL + ci * colW;
                           const x1 = x0 + colW;
                           const xMid = (x0 + x1) / 2;
                           const isSelected = extractedRanges.length > 1 && col.idx === selectedRangeIndex;
+                          const hasDist = col.from !== undefined && col.to !== undefined;
 
                           return (
                             <g
@@ -1707,7 +1708,7 @@ function App() {
                               )}
                               <text
                                 x={xMid}
-                                y={padT + plotH + 28}
+                                y={hasDist ? 26 : 38}
                                 textAnchor="middle"
                                 fill={isSelected ? '#ff9800' : '#ffffff'}
                                 fontSize="19"
@@ -1715,10 +1716,10 @@ function App() {
                               >
                                 {t('range.simple', col.rangeIndex)}
                               </text>
-                              {col.from !== undefined && col.to !== undefined && (
+                              {hasDist && (
                                 <text
                                   x={xMid}
-                                  y={padT + plotH + 50}
+                                  y={49}
                                   textAnchor="middle"
                                   fill="rgba(255,255,255,0.75)"
                                   fontSize="16.5"
@@ -1730,12 +1731,12 @@ function App() {
                           );
                         })}
 
-                        {/* Baseline */}
+                        {/* Top axis line */}
                         <line
                           x1={padL}
-                          y1={padT + plotH}
+                          y1={padT}
                           x2={padL + plotW}
-                          y2={padT + plotH}
+                          y2={padT}
                           stroke="rgba(255,255,255,0.35)"
                           strokeWidth="1.5"
                         />
