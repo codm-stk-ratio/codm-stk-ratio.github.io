@@ -92,7 +92,12 @@ export const translations: Record<Locale, Record<string, string>> = {
     'chart.enter_fire_interval': 'Showing STK (enter Fire Interval to view TTK in ms)',
     'btn.show_chart': 'Show Chart',
     'btn.copy_chart': 'Copy Chart',
-    'btn.copied': 'Copied!'
+    'btn.copied': 'Copied!',
+    'btn.download_chart': 'Download Image',
+    'btn.hide_percent': 'Hide %',
+    'btn.show_percent': 'Show %',
+    'chart.title_label': 'Chart Title',
+    'chart.title_placeholder': 'Enter image title (optional)...'
   },
   vi: {
     'alert.duplicate_damage': 'Lỗi: Một cấu hình với các chỉ số sát thương y hệt đã được lưu trước đó!',
@@ -171,7 +176,12 @@ export const translations: Record<Locale, Record<string, string>> = {
     'chart.enter_fire_interval': 'Đang hiển thị số viên STK (nhập Thời gian nghỉ bắn để xem TTK theo ms)',
     'btn.show_chart': 'Hiển thị biểu đồ',
     'btn.copy_chart': 'Sao chép biểu đồ',
-    'btn.copied': 'Đã sao chép!'
+    'btn.copied': 'Đã sao chép!',
+    'btn.download_chart': 'Tải ảnh',
+    'btn.hide_percent': 'Ẩn tỉ lệ %',
+    'btn.show_percent': 'Hiện tỉ lệ %',
+    'chart.title_label': 'Tiêu đề ảnh',
+    'chart.title_placeholder': 'Nhập tiêu đề cho ảnh (tùy chọn)...'
   },
   th: {
     'alert.duplicate_damage': 'ข้อผิดพลาด: มีการตั้งค่าความเสียหายนี้อยู่แล้ว!',
@@ -250,7 +260,12 @@ export const translations: Record<Locale, Record<string, string>> = {
     'chart.enter_fire_interval': 'แสดงจำนวนนัด STK (ป้อนเวลายิงเพื่อดู TTK เป็น ms)',
     'btn.show_chart': 'แสดงกราฟ',
     'btn.copy_chart': 'คัดลอกกราฟ',
-    'btn.copied': 'คัดลอกแล้ว!'
+    'btn.copied': 'คัดลอกแล้ว!',
+    'btn.download_chart': 'ดาวน์โหลดรูปภาพ',
+    'btn.hide_percent': 'ซ่อน %',
+    'btn.show_percent': 'แสดง %',
+    'chart.title_label': 'หัวข้อรูปภาพ',
+    'chart.title_placeholder': 'ใส่หัวข้อสำหรับรูปภาพ (ไม่บังคับ)...'
   },
   zh: {
     'alert.duplicate_damage': '错误：已存在具有相同伤害配置的方案！',
@@ -329,7 +344,12 @@ export const translations: Record<Locale, Record<string, string>> = {
     'chart.enter_fire_interval': '当前显示枪数 STK（输入射击间隔以查看 ms 单位的 TTK）',
     'btn.show_chart': '显示图表',
     'btn.copy_chart': '复制图表',
-    'btn.copied': '已复制！'
+    'btn.copied': '已复制！',
+    'btn.download_chart': '下载图片',
+    'btn.hide_percent': '隐藏百分比',
+    'btn.show_percent': '显示百分比',
+    'chart.title_label': '图片标题',
+    'chart.title_placeholder': '输入图片标题（可选）...'
   },
   ja: {
     'alert.duplicate_damage': 'エラー：同じダメージ設定のビルドが既に存在します！',
@@ -408,7 +428,12 @@ export const translations: Record<Locale, Record<string, string>> = {
     'chart.enter_fire_interval': '現在発数 (STK) を表示中（射撃間隔を入力すると TTK ms を表示）',
     'btn.show_chart': 'グラフを表示',
     'btn.copy_chart': 'グラフをコピー',
-    'btn.copied': 'コピーしました！'
+    'btn.copied': 'コピーしました！',
+    'btn.download_chart': '画像を保存',
+    'btn.hide_percent': '確率(%)を隠す',
+    'btn.show_percent': '確率(%)を表示',
+    'chart.title_label': '画像タイトル',
+    'chart.title_placeholder': '画像のタイトルを入力（任意）...'
   },
   ko: {
     'alert.duplicate_damage': '오류: 동일한 데미지 설정이 이미 존재합니다!',
@@ -487,7 +512,12 @@ export const translations: Record<Locale, Record<string, string>> = {
     'chart.enter_fire_interval': '현재 발수(STK) 표시 중 (발사 간격을 입력하면 TTK ms 표시)',
     'btn.show_chart': '그래프 보기',
     'btn.copy_chart': '그래프 복사',
-    'btn.copied': '복사됨!'
+    'btn.copied': '복사됨!',
+    'btn.download_chart': '이미지 다운로드',
+    'btn.hide_percent': '확률(%) 숨기기',
+    'btn.show_percent': '확률(%) 표시',
+    'chart.title_label': '이미지 제목',
+    'chart.title_placeholder': '이미지 제목 입력(선택)...'
   },
   es: {
     'alert.duplicate_damage': 'Error: ¡Ya existe una configuración con exactamente los mismos valores de daño!',
@@ -566,7 +596,12 @@ export const translations: Record<Locale, Record<string, string>> = {
     'chart.enter_fire_interval': 'Mostrando tiros STK (ingresa el intervalo de disparo para ver TTK en ms)',
     'btn.show_chart': 'Mostrar Gráfico',
     'btn.copy_chart': 'Copiar Gráfico',
-    'btn.copied': '¡Copiado!'
+    'btn.copied': '¡Copiado!',
+    'btn.download_chart': 'Descargar Imagen',
+    'btn.hide_percent': 'Ocultar %',
+    'btn.show_percent': 'Mostrar %',
+    'chart.title_label': 'Título',
+    'chart.title_placeholder': 'Título para la imagen (opcional)...'
   },
   pt: {
     'alert.duplicate_damage': 'Erro: Uma configuração com os mesmos valores de dano já existe!',
@@ -645,7 +680,12 @@ export const translations: Record<Locale, Record<string, string>> = {
     'chart.enter_fire_interval': 'Mostrando tiros STK (insira o intervalo de disparo para ver TTK em ms)',
     'btn.show_chart': 'Mostrar Gráfico',
     'btn.copy_chart': 'Copiar Gráfico',
-    'btn.copied': 'Copiado!'
+    'btn.copied': 'Copiado!',
+    'btn.download_chart': 'Baixar Imagem',
+    'btn.hide_percent': 'Ocultar %',
+    'btn.show_percent': 'Mostrar %',
+    'chart.title_label': 'Título',
+    'chart.title_placeholder': 'Título para a imagem (opcional)...'
   },
   ms: {
     'alert.duplicate_damage': 'Ralat: Konfigurasi dengan kerosakan yang sama sudah wujud!',
@@ -724,7 +764,12 @@ export const translations: Record<Locale, Record<string, string>> = {
     'chart.enter_fire_interval': 'Memaparkan STK (masukkan selang tembakan untuk melihat TTK dalam ms)',
     'btn.show_chart': 'Paparkan Graf',
     'btn.copy_chart': 'Salin Graf',
-    'btn.copied': 'Disalin!'
+    'btn.copied': 'Disalin!',
+    'btn.download_chart': 'Muat Turun Imej',
+    'btn.hide_percent': 'Sembunyi %',
+    'btn.show_percent': 'Papar %',
+    'chart.title_label': 'Tajuk Imej',
+    'chart.title_placeholder': 'Masukkan tajuk imej (pilihan)...'
   },
   id: {
     'alert.duplicate_damage': 'Kesalahan: Konfigurasi dengan kerusakan yang sama sudah ada!',
@@ -803,7 +848,12 @@ export const translations: Record<Locale, Record<string, string>> = {
     'chart.enter_fire_interval': 'Menampilkan STK (masukkan jeda tembakan untuk melihat TTK dalam ms)',
     'btn.show_chart': 'Tampilkan Grafik',
     'btn.copy_chart': 'Salin Grafik',
-    'btn.copied': 'Tersalin!'
+    'btn.copied': 'Tersalin!',
+    'btn.download_chart': 'Unduh Gambar',
+    'btn.hide_percent': 'Sembunyikan %',
+    'btn.show_percent': 'Tampilkan %',
+    'chart.title_label': 'Judul Gambar',
+    'chart.title_placeholder': 'Masukkan judul gambar (opsional)...'
   },
   hi: {
     'alert.duplicate_damage': 'त्रुटि: समान डैमेज मानों वाला कॉन्फ़िगरेशन पहले से मौजूद है!',
@@ -882,6 +932,11 @@ export const translations: Record<Locale, Record<string, string>> = {
     'chart.enter_fire_interval': 'STK दिखा रहा है (ms में TTK देखने के लिए फायर अंतराल दर्ज करें)',
     'btn.show_chart': 'ग्राफ़ दिखाएँ',
     'btn.copy_chart': 'ग्राफ़ कॉपी करें',
-    'btn.copied': 'कॉपी हो गया!'
+    'btn.copied': 'कॉपी हो गया!',
+    'btn.download_chart': 'इमेज डाउनलोड करें',
+    'btn.hide_percent': '% छिपाएँ',
+    'btn.show_percent': '% दिखाएँ',
+    'chart.title_label': 'शीर्षक',
+    'chart.title_placeholder': 'इमेज शीर्षक दर्ज करें (वैकल्पिक)...'
   }
 };

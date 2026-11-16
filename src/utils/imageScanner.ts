@@ -94,12 +94,68 @@ function splitSegments(
     raw.push([start, w]);
   }
 
+  // Check if raw already contains a standalone decimal point segment
+  let hasStandaloneDot = false;
+  for (const [rs, re] of raw) {
+    let yMin = h;
+    let yMax = -1;
+    for (let y = 0; y < h; y++) {
+      for (let x = rs; x < re; x++) {
+        if (mask[y * w + x]) {
+          if (y < yMin) yMin = y;
+          if (y > yMax) yMax = y;
+        }
+      }
+    }
+    const segH = yMax - yMin + 1;
+    if (yMax >= yMin && yMin >= totalH * 0.36 && segH <= totalH * 0.62) {
+      hasStandaloneDot = true;
+      break;
+    }
+  }
+
   const finalSegs: [number, number][] = [];
   while (raw.length > 0) {
     const seg = raw.shift()!;
     const s = seg[0];
     const e = seg[1];
     const segW = e - s;
+
+    // Only check for '1.' merged segment on the middle character of a 3-segment token when no standalone dot exists
+    if (!hasStandaloneDot && finalSegs.length === 1 && raw.length === 1 && segW >= totalH * 0.32 && segW <= totalH * 0.58) {
+      const uLim = Math.max(1, Math.floor(h * 0.64));
+      let rightDotCols = 0;
+      for (let x = e - 1; x >= s; x--) {
+        let hasUpper = false;
+        let hasLower = false;
+        for (let y = 0; y < uLim; y++) {
+          if (mask[y * w + x]) {
+            hasUpper = true;
+            break;
+          }
+        }
+        if (hasUpper) break;
+        for (let y = uLim; y < h; y++) {
+          if (mask[y * w + x]) {
+            hasLower = true;
+            break;
+          }
+        }
+        if (hasLower) rightDotCols++;
+        else break;
+      }
+      const leftW = segW - rightDotCols;
+      if (
+        rightDotCols >= 1 &&
+        leftW >= Math.max(2, Math.round(totalH * 0.16)) &&
+        leftW <= Math.round(totalH * 0.38)
+      ) {
+        hasStandaloneDot = true;
+        raw.unshift([e - rightDotCols, e]);
+        raw.unshift([s, e - rightDotCols]);
+        continue;
+      }
+    }
 
     if (segW >= totalH * 0.85) {
       const colProfile = new Int32Array(segW);
@@ -134,17 +190,57 @@ function splitSegments(
   return finalSegs;
 }
 
-function recognizeCell(
+function resampleSubImageRGBA(
+  src: Uint8ClampedArray,
+  sw: number,
+  sh: number,
+  sx0: number,
+  sy0: number,
+  sCropW: number,
+  sCropH: number,
+  dw: number,
+  dh: number
+): Uint8ClampedArray {
+  const dst = new Uint8ClampedArray(dw * dh * 4);
+  if (dw <= 0 || dh <= 0 || sCropW <= 0 || sCropH <= 0) return dst;
+  const scaleX = sCropW / dw;
+  const scaleY = sCropH / dh;
+
+  for (let dy = 0; dy < dh; dy++) {
+    const syCenter = sy0 + (dy + 0.5) * scaleY - 0.5;
+    const y0 = Math.max(0, Math.min(sh - 1, Math.floor(syCenter)));
+    const y1 = Math.max(0, Math.min(sh - 1, y0 + 1));
+    const wy = Math.max(0, Math.min(1, syCenter - y0));
+
+    for (let dx = 0; dx < dw; dx++) {
+      const sxCenter = sx0 + (dx + 0.5) * scaleX - 0.5;
+      const x0 = Math.max(0, Math.min(sw - 1, Math.floor(sxCenter)));
+      const x1 = Math.max(0, Math.min(sw - 1, x0 + 1));
+      const wx = Math.max(0, Math.min(1, sxCenter - x0));
+      const di = (dy * dw + dx) * 4;
+
+      for (let c = 0; c < 3; c++) {
+        const top = src[(y0 * sw + x0) * 4 + c] * (1 - wx) + src[(y0 * sw + x1) * 4 + c] * wx;
+        const bot = src[(y1 * sw + x0) * 4 + c] * (1 - wx) + src[(y1 * sw + x1) * 4 + c] * wx;
+        dst[di + c] = Math.round(top * (1 - wy) + bot * wy);
+      }
+      dst[di + 3] = 255;
+    }
+  }
+  return dst;
+}
+
+function recognizeCellWithScore(
   rgba: Uint8ClampedArray,
   imgW: number,
   yStart: number,
   yEnd: number,
   xStart: number,
   xEnd: number
-): string {
+): { text: string; score: number } {
   const h = yEnd - yStart;
   const w = xEnd - xStart;
-  if (h < 4 || w < 4) return '';
+  if (h < 4 || w < 4) return { text: '', score: -1e9 };
 
   const lum = new Float64Array(h * w);
   for (let y = 0; y < h; y++) {
@@ -162,7 +258,7 @@ function recognizeCell(
   }
 
   const peak = percentile(sig, 99);
-  if (peak < 20) return '';
+  if (peak < 20) return { text: '', score: -1e9 };
 
   const th = 0.45 * peak;
   let ryMin = h;
@@ -181,9 +277,9 @@ function recognizeCell(
     }
   }
 
-  if (ryMax < ryMin) return '';
+  if (ryMax < ryMin) return { text: '', score: -1e9 };
   const totalH = ryMax - ryMin + 1;
-  if (totalH < 5) return '';
+  if (totalH < 5) return { text: '', score: -1e9 };
 
   const mask = new Uint8Array(totalH * w);
   const sigCrop = new Float64Array(totalH * w);
@@ -197,6 +293,10 @@ function recognizeCell(
 
   const chars = splitSegments(mask, totalH, w, totalH);
   let out = '';
+  let totalScore = 0;
+  let digitCount = 0;
+  let hasRealDot = false;
+  const digitSegs: [number, number][] = [];
 
   for (const [cx0, cx1] of chars) {
     if (cx1 <= cx0) continue;
@@ -215,11 +315,14 @@ function recognizeCell(
     if (cyMax < cyMin) continue;
     const ch = cyMax - cyMin + 1;
 
-    if (ch <= totalH * 0.45 && cyMin >= totalH * 0.45) {
-      out += '.';
+    if (cyMin >= totalH * 0.36 && ch <= totalH * 0.62) {
+      if (!out.includes('.')) {
+        out += '.';
+        hasRealDot = true;
+      }
       continue;
     }
-    if (ch < totalH * 0.5) {
+    if (ch < totalH * 0.65) {
       continue;
     }
 
@@ -288,10 +391,107 @@ function recognizeCell(
       bestD = minRight < 0.25 ? '6' : '8';
     }
 
+    if (ch <= 11 && bestD === '9' && '8' in scores && scores['8'] > bestScore - 0.08) {
+      const r0 = Math.floor(ch * 0.55);
+      const r1 = Math.max(r0 + 1, Math.floor(ch * 0.78));
+      const c1 = Math.max(1, Math.floor(cw * 0.48));
+      let minLeft = 1.0;
+      for (let y = r0; y < r1; y++) {
+        let lSum = 0;
+        for (let x = 0; x < c1; x++) {
+          lSum += mask[(cyMin + y) * w + (cx0 + x)];
+        }
+        const lAvg = lSum / c1;
+        if (lAvg < minLeft) minLeft = lAvg;
+      }
+      if (minLeft >= 0.25) bestD = '8';
+    }
+
     out += bestD;
+    totalScore += bestScore;
+    digitCount++;
+    digitSegs.push([cx0, cx1]);
   }
 
-  return out;
+  if (out.startsWith('.')) out = out.slice(1);
+  if (out.endsWith('.')) out = out.slice(0, -1);
+
+  // Post-loop recovery when a dim decimal point '.' fell below threshold between digit 2 and digit 3
+  if (!out.includes('.') && !out.endsWith('0')) {
+    if (out.length === 4 && digitSegs.length === 4) {
+      const gap01 = digitSegs[1][0] - digitSegs[0][1];
+      const gap12 = digitSegs[2][0] - digitSegs[1][1];
+      if (gap12 >= gap01) {
+        out = out.slice(0, 2) + '.' + out.slice(2);
+      }
+    } else if (out.length === 3 && digitSegs.length === 3) {
+      const gap01 = digitSegs[1][0] - digitSegs[0][1];
+      const gap12 = digitSegs[2][0] - digitSegs[1][1];
+      if (gap12 > gap01 || parseInt(out, 10) >= 200 || (gap12 >= Math.max(2, Math.floor(totalH * 0.16)) && parseInt(out, 10) >= 120)) {
+        out = out.slice(0, 2) + '.' + out.slice(2);
+      }
+    }
+  }
+
+  return {
+    text: out,
+    score: digitCount > 0 ? totalScore / digitCount + (hasRealDot ? 0.04 : 0) : -1e9,
+  };
+}
+
+function recognizeCellMultiScale(
+  rgba: Uint8ClampedArray,
+  imgW: number,
+  imgH: number,
+  yStart: number,
+  yEnd: number,
+  xStart: number,
+  xEnd: number,
+  currentStep: number,
+  stretchX = 1.0
+): string {
+  const isUnstretched = Math.abs(stretchX - 1.0) <= 0.12;
+
+  // When unstretched and step is already in the calibrated sweet spot [28..64], native recognition is sharpest
+  if (isUnstretched && currentStep >= 28 && currentStep <= 64) {
+    const nat = recognizeCellWithScore(rgba, imgW, yStart, yEnd, xStart, xEnd);
+    if (nat.text && /^\d+(\.\d+)?$/.test(nat.text) && nat.score >= 0.58 && (nat.text.includes('.') || nat.text.length <= 2)) {
+      return nat.text;
+    }
+  }
+
+  const candidates: { text: string; score: number }[] = [];
+  if (isUnstretched) {
+    const nat = recognizeCellWithScore(rgba, imgW, yStart, yEnd, xStart, xEnd);
+    if (nat.text && /^\d+(\.\d+)?$/.test(nat.text)) {
+      candidates.push({ text: nat.text, score: nat.score + 0.02 });
+    }
+  }
+
+  // Canonical target steps where templates were calibrated (31px and 58px)
+  const cropW = xEnd - xStart;
+  const cropH = yEnd - yStart;
+  const targetSteps = currentStep < 28 ? [31, 58] : currentStep > 64 ? [58, 31] : [31, 58];
+  for (const targetStep of targetSteps) {
+    const scaleY = targetStep / currentStep;
+    const scaleX = scaleY / stretchX;
+    if (Math.abs(scaleX - 1.0) < 0.06 && Math.abs(scaleY - 1.0) < 0.06) continue;
+    const dw = Math.max(8, Math.round(cropW * scaleX));
+    const dh = Math.max(8, Math.round(cropH * scaleY));
+    const resampled = resampleSubImageRGBA(rgba, imgW, imgH, xStart, yStart, cropW, cropH, dw, dh);
+    const res = recognizeCellWithScore(resampled, dw, 0, dh, 0, dw);
+    if (res.text && /^\d+(\.\d+)?$/.test(res.text)) {
+      candidates.push(res);
+    }
+  }
+
+  if (candidates.length === 0) {
+    return recognizeCellWithScore(rgba, imgW, yStart, yEnd, xStart, xEnd).text;
+  }
+
+  candidates.sort((a, b) => b.score - a.score);
+
+  return candidates[0].text;
 }
 
 function refineGridConsensus(grid: string[][]): string[][] {
@@ -339,6 +539,106 @@ function refineGridConsensus(grid: string[][]): string[][] {
     }
   }
   return out;
+}
+
+function estimateTableStretchX(
+  rgba: Uint8ClampedArray,
+  imgW: number,
+  rowCenters: number[],
+  halfH: number,
+  validCols: [number, number][],
+  bestStep: number
+): number {
+  if (bestStep < 28) return 1.0;
+  const ratios: number[] = [];
+
+  for (let r = 0; r < 6; r++) {
+    const yc = rowCenters[r];
+    const y0 = Math.max(0, yc - halfH);
+    const y1 = yc + halfH + 1;
+    const h = y1 - y0;
+    if (h < 5) continue;
+
+    for (const [x0, x1] of validCols) {
+      const w = x1 - x0;
+      if (w < 5) continue;
+
+      const lum = new Float64Array(h * w);
+      for (let y = 0; y < h; y++) {
+        const rowOff = (y0 + y) * imgW;
+        for (let x = 0; x < w; x++) {
+          const idx = (rowOff + (x0 + x)) * 4;
+          lum[y * w + x] = 0.299 * rgba[idx] + 0.587 * rgba[idx + 1] + 0.114 * rgba[idx + 2];
+        }
+      }
+      const bg = percentile(lum, 15);
+      const sig = new Float64Array(h * w);
+      for (let i = 0; i < lum.length; i++) sig[i] = Math.max(0, lum[i] - bg);
+      const peak = percentile(sig, 99);
+      if (peak < 20) continue;
+
+      const th = 0.45 * peak;
+      let ryMin = h;
+      let ryMax = -1;
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          if (sig[y * w + x] > th) {
+            if (y < ryMin) ryMin = y;
+            if (y > ryMax) ryMax = y;
+            break;
+          }
+        }
+      }
+      if (ryMax < ryMin) continue;
+      const totalH = ryMax - ryMin + 1;
+      if (totalH < 5) continue;
+
+      // Raw connected horizontal segments without aspect-dependent splitting
+      let inC = false;
+      let start = 0;
+      for (let x = 0; x < w; x++) {
+        let has = false;
+        for (let y = ryMin; y <= ryMax; y++) {
+          if (sig[y * w + x] > th) {
+            has = true;
+            break;
+          }
+        }
+        if (has && !inC) {
+          start = x;
+          inC = true;
+        } else if (!has && inC) {
+          const cw = x - start;
+          let cyMin = totalH;
+          let cyMax = -1;
+          for (let y = 0; y < totalH; y++) {
+            for (let xx = start; xx < x; xx++) {
+              if (sig[(ryMin + y) * w + xx] > th) {
+                if (y < cyMin) cyMin = y;
+                if (y > cyMax) cyMax = y;
+              }
+            }
+          }
+          const ch = cyMax - cyMin + 1;
+          if (ch >= totalH * 0.75) {
+            const ratio = cw / ch;
+            if (ratio >= 0.22 && ratio <= 0.95) {
+              ratios.push(ratio);
+            }
+          }
+          inC = false;
+        }
+      }
+    }
+  }
+
+  if (ratios.length < 6) return 1.0;
+  ratios.sort((a, b) => a - b);
+  // Median single-digit width/height ratio corresponds to standard digits (0,2,3,4,5,6,7,8,9), canonical ~ 0.54
+  const med = ratios[Math.floor(ratios.length * 0.52)];
+  const est = med / 0.54;
+  if (est >= 0.88 && est <= 1.14) return 1.0;
+  return Math.max(0.45, Math.min(2.2, est));
 }
 
 export function scanDamageTableFromRGBA(
@@ -392,7 +692,9 @@ export function scanDamageTableFromRGBA(
     }
   }
 
-  const maxSingleLimit = Math.max(18, H * 0.14);
+  // Reference UI height adapts to 16:9, 18:9, 19.5:9, 20:9, 21:9, 4:3 iPads, and cropped panels
+  const uiRefH = W > H * 1.25 ? Math.min(H, Math.round(W * 0.45)) : H;
+  const maxSingleLimit = Math.max(18, uiRefH * 0.14);
   const textCols = new Uint8Array(W);
   for (let x = 0; x < W; x++) {
     let maxC = 0;
@@ -402,7 +704,7 @@ export function scanDamageTableFromRGBA(
     textCols[x] = maxC < maxSingleLimit ? 1 : 0;
   }
 
-  const win = Math.max(5, Math.floor(H / 40));
+  const win = Math.max(5, Math.floor(uiRefH / 40));
   const halfWin = Math.floor(win / 2);
   const smooth = Array.from({ length: 6 }, () => new Float64Array(H));
 
@@ -429,7 +731,7 @@ export function scanDamageTableFromRGBA(
   let bestScore = -1;
   let bestY0 = 0;
   let bestStep = 0;
-  const minStep = Math.max(8, Math.floor(H * 0.035));
+  const minStep = Math.max(8, Math.floor(uiRefH * 0.035));
   const maxStep = Math.min(Math.floor(H * 0.22), Math.floor((H - 2) / 5));
 
   for (let step = minStep; step <= maxStep; step++) {
@@ -525,12 +827,16 @@ export function scanDamageTableFromRGBA(
 
   if (validCols.length === 0) return null;
 
+  const stretchX = estimateTableStretchX(rgba, W, rowCenters, halfH, validCols, bestStep);
+
   let grid: string[][] = [];
   for (let r = 0; r < 6; r++) {
     const yc = rowCenters[r];
     const y0 = Math.max(0, yc - halfH);
     const y1 = Math.min(H, yc + halfH + 1);
-    const rowVals = validCols.map(([x0, x1]) => recognizeCell(rgba, W, y0, y1, x0, x1));
+    const rowVals = validCols.map(([x0, x1]) =>
+      recognizeCellMultiScale(rgba, W, H, y0, y1, x0, x1, bestStep, stretchX)
+    );
     grid.push(rowVals);
   }
 
@@ -540,8 +846,8 @@ export function scanDamageTableFromRGBA(
   const ryc = Math.round(rowCenters[5] + 1.56 * bestStep);
   const ry0 = Math.max(0, ryc - halfH);
   const ry1 = Math.min(H, ryc + halfH + 1);
-  const rx0 = Math.max(0, validCols[0][0] - Math.floor(bestStep * 1.5));
-  const rx1 = Math.min(W, validCols[validCols.length - 1][1] + Math.floor(bestStep * 1.5));
+  const rx0 = Math.max(0, validCols[0][0] - Math.floor(bestStep * 1.5 * stretchX));
+  const rx1 = Math.min(W, validCols[validCols.length - 1][1] + Math.floor(bestStep * 1.5 * stretchX));
 
   if (ry1 - ry0 >= 5 && ryc < H && rx1 > rx0) {
     const sh = ry1 - ry0;
@@ -562,7 +868,7 @@ export function scanDamageTableFromRGBA(
     const peak = percentile(stripSig, 99);
     if (peak > 30) {
       const rth = 0.42 * peak;
-      const rgapTol = Math.max(3, Math.floor(bestStep * 0.18));
+      const rgapTol = Math.max(2, Math.floor(bestStep * 0.18 * stretchX));
       const rsegs: [number, number][] = [];
       let inRs = false;
       let rsStart = 0;
@@ -594,13 +900,23 @@ export function scanDamageTableFromRGBA(
         rsegs.push([rsStart, sw]);
       }
 
-      const rpad = Math.max(8, Math.floor(bestStep * 0.35));
+      const rpad = Math.max(8, Math.floor(bestStep * 0.35 * stretchX));
       for (const [sx0, sx1] of rsegs) {
         const cellX0 = rx0 + Math.max(0, sx0 - rpad);
         const cellX1 = rx0 + Math.min(sw, sx1 + rpad);
-        const val = recognizeCell(rgba, W, ry0, ry1, cellX0, cellX1);
+        const val = recognizeCellMultiScale(rgba, W, H, ry0, ry1, cellX0, cellX1, bestStep, stretchX);
         if (val && /^\d+(\.\d+)?$/.test(val)) {
           boundaries.push(val);
+        }
+      }
+      for (let i = 1; i < boundaries.length - 1; i++) {
+        const b = boundaries[i];
+        if (/^\d{3}$/.test(b) && parseInt(b, 10) > 100) {
+          boundaries[i] = b.slice(0, 2) + '.' + b.slice(2);
+        } else if (/^\d{4}$/.test(b)) {
+          boundaries[i] = b.slice(0, 2) + '.' + b.slice(3);
+        } else if (/^\d+\.\d{2}$/.test(b) && b[b.length - 1] === b[b.length - 2]) {
+          boundaries[i] = b.slice(0, -1);
         }
       }
     }

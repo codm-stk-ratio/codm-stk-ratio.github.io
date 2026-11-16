@@ -7,6 +7,8 @@ import { scanDamageImageFile, DAMAGE_TABLE_PARTS, type ExtractedRange } from './
 import { translations, languageNames, type Locale } from './locales';
 import './index.css';
 
+const CHART_TITLE_MAX_LENGTH = 50;
+
 const GAME_MODES = [
   { id: 'mp', name: 'app.mp_100', defaultHp: 100 },
   { id: 'br', name: 'app.br_300', defaultHp: 300 },
@@ -257,8 +259,27 @@ function App() {
   });
   const [modalState, setModalState] = useState<'none' | 'load' | 'save' | 'import' | 'chart'>('none');
   const [chartCopied, setChartCopied] = useState<boolean>(false);
+  const [showChartPercent, setShowChartPercent] = useState<boolean>(() => {
+    return localStorage.getItem('showChartPercent') !== 'false';
+  });
+  const [chartTitle, setChartTitle] = useState<string>(() => {
+    const saved = localStorage.getItem('chartTitle') || '';
+    return saved.replace(/[\r\n]+/g, ' ').slice(0, CHART_TITLE_MAX_LENGTH);
+  });
   const [isDraggingImage, setIsDraggingImage] = useState<boolean>(false);
   const [newBuildName, setNewBuildName] = useState<string>('');
+
+  useEffect(() => {
+    localStorage.setItem('showChartPercent', String(showChartPercent));
+  }, [showChartPercent]);
+
+  useEffect(() => {
+    localStorage.setItem('chartTitle', chartTitle);
+  }, [chartTitle]);
+
+  const handleChartTitleChange = (raw: string) => {
+    setChartTitle(raw.replace(/[\r\n]+/g, ' ').slice(0, CHART_TITLE_MAX_LENGTH));
+  };
 
   useEffect(() => {
     localStorage.setItem('savedBuilds', JSON.stringify(savedBuilds));
@@ -589,33 +610,48 @@ function App() {
       .filter((item): item is NonNullable<typeof item> => item !== null && item.levels.length > 0);
   }, [extractedRanges, isReady, damages, mode, health, missedShots, hasValidTiming, fireMode, fiNum, bdNum, bcNum]);
 
-  const handleCopyChart = async () => {
-    if (rangeChartData.length === 0) return;
+  const renderChartCanvas = (): HTMLCanvasElement | null => {
+    if (rangeChartData.length === 0) return null;
 
-    try {
-      const scale = 4;
-      const canvasW = 1000;
-      const canvasH = 604;
-      const canvas = document.createElement('canvas');
-      canvas.width = canvasW * scale;
-      canvas.height = canvasH * scale;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
+    const scale = 4;
+    const canvasW = 1000;
+    const canvasH = 604;
+    const canvas = document.createElement('canvas');
+    canvas.width = canvasW * scale;
+    canvas.height = canvasH * scale;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
 
-      ctx.scale(scale, scale);
+    ctx.scale(scale, scale);
 
-      const fontFamily = getComputedStyle(document.body).fontFamily || "'LF Refrigerator Deluxe', sans-serif";
+    const fontFamily = getComputedStyle(document.body).fontFamily || "'LF Refrigerator Deluxe', sans-serif";
 
       // Outer background
       ctx.fillStyle = '#181a1f';
       ctx.fillRect(0, 0, canvasW, canvasH);
 
       // Title
+      const customTitle = chartTitle.trim().slice(0, CHART_TITLE_MAX_LENGTH);
+      const defaultTitle = t('title.ttk_chart');
+
       ctx.fillStyle = '#ff9800';
       ctx.font = `700 24px ${fontFamily}`;
       ctx.textBaseline = 'middle';
       ctx.textAlign = 'left';
-      ctx.fillText(t('title.ttk_chart'), 20, 30);
+
+      if (customTitle) {
+        ctx.fillText(customTitle, 20, 30, 960);
+        const customWidth = Math.min(960, ctx.measureText(customTitle).width);
+        ctx.font = `600 14px ${fontFamily}`;
+        const subWidth = ctx.measureText(defaultTitle).width;
+        if (20 + customWidth + 24 + subWidth <= 980) {
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+          ctx.textAlign = 'right';
+          ctx.fillText(defaultTitle, 980, 31);
+        }
+      } else {
+        ctx.fillText(defaultTitle, 20, 30, 960);
+      }
 
       // Legend box
       const legX = 20;
@@ -686,7 +722,7 @@ function App() {
       const plotH = svgH - padT - padB;
       const nCols = rangeChartData.length;
       const colW = plotW / nCols;
-      const pillW = Math.min(144, colW - 10);
+      const pillW = Math.min(showChartPercent ? 144 : 96, colW - 10);
 
       const getY = (val: number) => padT + plotH - ((val - yMin) / yRange) * plotH;
 
@@ -806,9 +842,10 @@ function App() {
         col.levels.forEach(lvl => {
           const py = getY(lvl.yVal);
           const pctStr = `${parseFloat(lvl.cumulProb.toFixed(1))}%`;
-          const labelText = hasValidTiming
-            ? `${lvl.yVal}ms (${pctStr})`
-            : `${lvl.yVal}${t('table.shots_suffix')} (${pctStr})`;
+          const baseLabel = hasValidTiming
+            ? `${lvl.yVal}ms`
+            : `${lvl.yVal}${t('table.shots_suffix')}`;
+          const labelText = showChartPercent ? `${baseLabel} (${pctStr})` : baseLabel;
 
           // Horizontal line
           ctx.strokeStyle = lvl.color;
@@ -838,6 +875,13 @@ function App() {
       });
 
       ctx.restore();
+      return canvas;
+  };
+
+  const handleCopyChart = async () => {
+    try {
+      const canvas = renderChartCanvas();
+      if (!canvas) return;
 
       const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
       if (!blob) return;
@@ -852,6 +896,27 @@ function App() {
       setTimeout(() => setChartCopied(false), 2000);
     } catch (err) {
       console.error('Failed to copy chart to clipboard:', err);
+    }
+  };
+
+  const handleDownloadChart = async () => {
+    try {
+      const canvas = renderChartCanvas();
+      if (!canvas) return;
+
+      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
+      if (!blob) return;
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `ttk-chart-${Date.now()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to download chart:', err);
     }
   };
 
@@ -1403,30 +1468,67 @@ function App() {
                       ? t('btn.load_build')
                       : t('btn.save_build')}
               </h2>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
                 {modalState === 'chart' && (
-                  <button
-                    type="button"
-                    className={`copy-chart-btn ${chartCopied ? 'copied' : ''}`}
-                    onClick={handleCopyChart}
-                  >
-                    {chartCopied ? (
-                      <>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                        {t('btn.copied')}
-                      </>
-                    ) : (
-                      <>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                        </svg>
-                        {t('btn.copy_chart')}
-                      </>
-                    )}
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      className={`copy-chart-btn ${!showChartPercent ? 'active-toggle' : ''}`}
+                      onClick={() => setShowChartPercent(prev => !prev)}
+                    >
+                      {showChartPercent ? (
+                        <>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                          </svg>
+                          {t('btn.hide_percent')}
+                        </>
+                      ) : (
+                        <>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                          </svg>
+                          {t('btn.show_percent')}
+                        </>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      className={`copy-chart-btn ${chartCopied ? 'copied' : ''}`}
+                      onClick={handleCopyChart}
+                    >
+                      {chartCopied ? (
+                        <>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                          </svg>
+                          {t('btn.copied')}
+                        </>
+                      ) : (
+                        <>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                          </svg>
+                          {t('btn.copy_chart')}
+                        </>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      className="copy-chart-btn"
+                      onClick={handleDownloadChart}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                      </svg>
+                      {t('btn.download_chart')}
+                    </button>
+                  </>
                 )}
                 <button
                   className="close-btn"
@@ -1462,12 +1564,42 @@ function App() {
                 const plotH = svgH - padT - padB;
                 const nCols = rangeChartData.length;
                 const colW = plotW / nCols;
-                const pillW = Math.min(144, colW - 10);
+                const pillW = Math.min(showChartPercent ? 144 : 96, colW - 10);
 
                 const getY = (val: number) => padT + plotH - ((val - yMin) / yRange) * plotH;
 
                 return (
                   <div className="modal-body" style={{ paddingRight: 0 }}>
+                    <div className="chart-title-row">
+                      <label htmlFor="chart-custom-title" className="chart-title-label">
+                        {t('chart.title_label')}
+                      </label>
+                      <div className="chart-title-input-wrap">
+                        <input
+                          id="chart-custom-title"
+                          type="text"
+                          className="chart-title-input"
+                          value={chartTitle}
+                          onChange={(e) => handleChartTitleChange(e.target.value)}
+                          maxLength={CHART_TITLE_MAX_LENGTH}
+                          placeholder={t('chart.title_placeholder')}
+                        />
+                        {chartTitle.length > 0 && (
+                          <button
+                            type="button"
+                            className="chart-title-clear"
+                            onClick={() => setChartTitle('')}
+                            aria-label="Clear title"
+                          >
+                            &times;
+                          </button>
+                        )}
+                        <span className="chart-title-count">
+                          {chartTitle.length}/{CHART_TITLE_MAX_LENGTH}
+                        </span>
+                      </div>
+                    </div>
+
                     {!hasValidTiming && (
                       <div className="ttk-chart-unit-note" style={{ marginBottom: '0.8rem' }}>
                         {t('chart.enter_fire_interval')}
@@ -1653,9 +1785,10 @@ function App() {
                           return col.levels.map((lvl, li) => {
                             const py = getY(lvl.yVal);
                             const pctStr = `${parseFloat(lvl.cumulProb.toFixed(1))}%`;
-                            const labelText = hasValidTiming
-                              ? `${lvl.yVal}ms (${pctStr})`
-                              : `${lvl.yVal}${t('table.shots_suffix')} (${pctStr})`;
+                            const baseLabel = hasValidTiming
+                              ? `${lvl.yVal}ms`
+                              : `${lvl.yVal}${t('table.shots_suffix')}`;
+                            const labelText = showChartPercent ? `${baseLabel} (${pctStr})` : baseLabel;
 
                             return (
                               <g
