@@ -9,6 +9,19 @@ import './index.css';
 
 const CHART_TITLE_MAX_LENGTH = 50;
 
+function getChartYScale(allYVals: number[], hasValidTiming: boolean, padT: number, plotH: number) {
+  const uniqueYVals = Array.from(new Set(allYVals)).sort((a, b) => a - b);
+  const minRaw = Math.min(...allYVals);
+  const maxRaw = Math.max(...allYVals);
+  const span = Math.max(hasValidTiming ? 80 : 2, maxRaw - minRaw);
+  const yMin = minRaw - span * 0.25;
+  const yMax = maxRaw + span * 0.25;
+  const yRange = Math.max(1e-6, yMax - yMin);
+  // Inverted Y axis: shorter TTK / fewer shots appear higher on the chart
+  const getY = (val: number) => padT + ((val - yMin) / yRange) * plotH;
+  return { uniqueYVals, getY };
+}
+
 const GAME_MODES = [
   { id: 'mp', name: 'app.mp_100', defaultHp: 100 },
   { id: 'br', name: 'app.br_300', defaultHp: 300 },
@@ -705,15 +718,6 @@ function App() {
       ctx.save();
       ctx.translate(chartX, chartY);
 
-      const allYVals = rangeChartData.flatMap(d => d.levels.map(l => l.yVal));
-      const uniqueYVals = Array.from(new Set(allYVals)).sort((a, b) => a - b);
-      const minRaw = Math.min(...allYVals);
-      const maxRaw = Math.max(...allYVals);
-      const span = Math.max(hasValidTiming ? 80 : 2, maxRaw - minRaw);
-      const yMin = Math.max(0, minRaw - span * 0.25);
-      const yMax = maxRaw + span * 0.25;
-      const yRange = Math.max(1e-6, yMax - yMin);
-
       const padL = 78;
       const padR = 24;
       const padT = 40;
@@ -724,7 +728,8 @@ function App() {
       const colW = plotW / nCols;
       const pillW = Math.min(showChartPercent ? 144 : 96, colW - 10);
 
-      const getY = (val: number) => padT + plotH - ((val - yMin) / yRange) * plotH;
+      const allYVals = rangeChartData.flatMap(d => d.levels.map(l => l.yVal));
+      const { uniqueYVals, getY } = getChartYScale(allYVals, hasValidTiming, padT, plotH);
 
       // Active range highlight
       if (extractedRanges.length > 1) {
@@ -1545,15 +1550,6 @@ function App() {
 
             {modalState === 'chart' ? (
               rangeChartData.length > 0 && (() => {
-                const allYVals = rangeChartData.flatMap(d => d.levels.map(l => l.yVal));
-                const uniqueYVals = Array.from(new Set(allYVals)).sort((a, b) => a - b);
-                const minRaw = Math.min(...allYVals);
-                const maxRaw = Math.max(...allYVals);
-                const span = Math.max(hasValidTiming ? 80 : 2, maxRaw - minRaw);
-                const yMin = Math.max(0, minRaw - span * 0.25);
-                const yMax = maxRaw + span * 0.25;
-                const yRange = Math.max(1e-6, yMax - yMin);
-
                 const svgW = 960;
                 const svgH = 480;
                 const padL = 78;
@@ -1566,7 +1562,8 @@ function App() {
                 const colW = plotW / nCols;
                 const pillW = Math.min(showChartPercent ? 144 : 96, colW - 10);
 
-                const getY = (val: number) => padT + plotH - ((val - yMin) / yRange) * plotH;
+                const allYVals = rangeChartData.flatMap(d => d.levels.map(l => l.yVal));
+                const { uniqueYVals, getY } = getChartYScale(allYVals, hasValidTiming, padT, plotH);
 
                 return (
                   <div className="modal-body" style={{ paddingRight: 0 }}>
